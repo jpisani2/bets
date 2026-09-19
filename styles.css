@@ -1,0 +1,176 @@
+/* ===========================================================================
+   Built for a dim living room on a phone. The four semantic colors carry
+   meaning and must not be reused for decoration: --a and --b identify the two
+   sides of a bet, --up and --down identify money won and lost. Team themes
+   will recolor the environment around them, never these.
+   =========================================================================== */
+
+:root{
+  --ground:#0E1A16; --surface:#16241F; --surface2:#1D2F28; --line:#2B4037;
+  --ink:#E9EFEA; --ink2:#8CA396; --ink3:#5E7469;
+  --a:#EBB04A; --b:#5AA9DE; --up:#6FD08C; --down:#E4796C; --edit:#C88BD8;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ground);color:var(--ink);min-height:100%}
+body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased}
+button{font:inherit}
+code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.9em}
+
+.cond{font-family:"Oswald","Arial Narrow",Impact,sans-serif;font-weight:500;letter-spacing:.02em}
+.num{font-variant-numeric:tabular-nums}
+.up{color:var(--up)} .down{color:var(--down)} .edited{color:var(--edit)}
+
+/* --- layout -------------------------------------------------------------- */
+.wrap{max-width:520px;margin:0 auto;padding:0 14px 130px}
+.center{max-width:400px;margin:0 auto;padding:30px 20px;min-height:100vh;
+  display:flex;flex-direction:column;justify-content:center}
+.center h1{font-size:34px;margin:0 0 6px;line-height:1}
+.center p{color:var(--ink2);font-size:14px;margin:0 0 20px;line-height:1.5}
+
+.head{display:flex;align-items:baseline;justify-content:space-between;padding:18px 0 10px}
+.head h1{margin:0;font-size:26px;line-height:1}
+.head .sub{font-size:12px;color:var(--ink3);margin-top:5px}
+.yournet{text-align:right}
+.yournet .v{font-size:26px;line-height:1}
+.yournet .k{font-size:11px;color:var(--ink3)}
+
+.sechead{display:flex;align-items:center;gap:9px;margin:22px 0 9px;
+  color:var(--ink2);font-size:13px}
+.sechead .rule{flex:1;height:1px;background:var(--line)}
+
+.dot{position:fixed;top:calc(6px + env(safe-area-inset-top,0px));right:10px;
+  width:8px;height:8px;border-radius:99px;background:var(--ink3);z-index:60}
+.dot[data-live="1"]{background:var(--up)}
+
+/* --- bet cards ----------------------------------------------------------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:13px;margin-bottom:11px}
+.card .grp{font-size:11px;color:var(--ink3);margin-bottom:5px}
+.card .q{font-size:16px;line-height:1.3;margin-bottom:11px}
+.card .who{font-size:11px;color:var(--ink3);margin-top:6px;line-height:1.45}
+
+.sides{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.side{border:1px solid var(--line);background:var(--surface2);border-radius:10px;
+  padding:10px 9px;text-align:left;cursor:pointer;color:var(--ink)}
+.side .nm{font-size:15px;font-weight:600;line-height:1.2}
+.side .rk{font-size:12px;color:var(--ink2);margin-top:4px}
+.side .py{font-size:11px;color:var(--ink3);margin-top:1px}
+.side[data-s="A"]{border-left:3px solid var(--a)}
+.side[data-s="B"]{border-left:3px solid var(--b)}
+.side[data-mine="1"][data-s="A"]{background:rgba(235,176,74,.15);border-color:var(--a)}
+.side[data-mine="1"][data-s="B"]{background:rgba(90,169,222,.15);border-color:var(--b)}
+.takers{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
+.chip{font-size:11px;padding:2px 7px;border-radius:999px;
+  background:rgba(255,255,255,.07);color:var(--ink2)}
+
+.potrow{display:flex;justify-content:space-between;align-items:center;gap:10px;
+  margin-top:11px;padding-top:10px;border-top:1px solid var(--line);
+  font-size:13px;color:var(--ink2)}
+.potrow b{color:var(--ink);font-weight:600}
+
+.lineup{font-size:13px;color:var(--ink2);line-height:1.6}
+.lineup .nmA{color:var(--a)} .lineup .nmB{color:var(--b)}
+.result{font-size:13px;color:var(--ink2)}
+.result b{color:var(--ink)}
+.splits{margin-top:8px}
+.split{display:flex;justify-content:space-between;font-size:13px;
+  padding:3px 0;color:var(--ink2)}
+
+/* --- controls ------------------------------------------------------------ */
+.btn{border:1px solid var(--line);background:var(--surface2);color:var(--ink);
+  border-radius:9px;padding:9px 13px;font-size:14px;cursor:pointer}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.primary{background:var(--ink);color:var(--ground);border-color:var(--ink);font-weight:600}
+.btn.wide{width:100%}
+.btn.sm{padding:6px 10px;font-size:13px}
+.linkish{background:none;border:none;color:var(--ink3);font-size:12px;
+  text-decoration:underline;cursor:pointer;padding:0}
+.backlink{margin-top:12px}
+.rowbtns{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.twoup{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+.grades{display:flex;gap:6px;margin-top:11px;flex-wrap:wrap}
+.gbtn{flex:1;min-width:64px;border:1px solid var(--line);background:transparent;
+  color:var(--ink2);border-radius:8px;padding:8px 4px;font-size:13px;cursor:pointer}
+.gbtn[data-k="A"]{border-color:rgba(235,176,74,.5);color:var(--a)}
+.gbtn[data-k="B"]{border-color:rgba(90,169,222,.5);color:var(--b)}
+
+/* 16px on inputs, or iOS zooms the page when they focus. */
+.field{width:100%;background:var(--surface);border:1px solid var(--line);
+  border-radius:9px;padding:11px;color:var(--ink);font:inherit;font-size:16px;
+  margin-bottom:9px}
+.field:focus{outline:2px solid var(--ink3);outline-offset:1px}
+.flabel{font-size:12px;color:var(--ink2);margin-bottom:4px;display:block}
+input[type=range]{width:100%;accent-color:#EBB04A}
+
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:11px 12px;margin:12px 0}
+.toggle .s{font-size:11px;color:var(--ink3);margin-top:2px;line-height:1.4}
+.sw{flex:0 0 auto;width:48px;height:28px;border-radius:99px;
+  border:1px solid var(--line);background:var(--surface2);position:relative;
+  cursor:pointer;padding:0}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;
+  border-radius:99px;background:var(--ink3)}
+.sw[data-on="1"]{background:rgba(235,176,74,.3);border-color:var(--a)}
+.sw[data-on="1"]::after{left:23px;background:var(--a)}
+
+.namegrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.namebtn{padding:16px;border-radius:10px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);font-size:16px;cursor:pointer}
+
+/* --- messages ------------------------------------------------------------ */
+.err{color:var(--down);font-size:13px;margin-bottom:10px;line-height:1.45}
+.warn{font-size:13px;color:var(--a);line-height:1.5;margin:-4px 0 10px}
+.empty{color:var(--ink3);font-size:14px;padding:18px 0;line-height:1.55}
+.banner{background:var(--a);color:#161006;border-radius:10px;padding:11px 13px;
+  font-size:14px;font-weight:600;margin-bottom:12px}
+
+/* --- scoreboard ---------------------------------------------------------- */
+.board{width:100%;border-collapse:collapse;font-size:13px}
+.board th{text-align:right;color:var(--ink3);font-weight:400;font-size:11px;
+  padding:5px 4px;border-bottom:1px solid var(--line)}
+.board th:first-child,.board td:first-child{text-align:left}
+.board td{text-align:right;padding:8px 4px;border-bottom:1px solid rgba(43,64,55,.5)}
+.board td:first-child{color:var(--ink2)}
+.board td.you{color:var(--ink)}
+
+/* --- sticky action ------------------------------------------------------- */
+.fab{position:fixed;left:0;right:0;bottom:0;
+  padding:12px 14px calc(12px + env(safe-area-inset-bottom));
+  background:linear-gradient(to top,var(--ground) 65%,rgba(14,26,22,0));z-index:30}
+.fab .inner{max-width:520px;margin:0 auto}
+
+/* --- propose sheet ------------------------------------------------------- */
+.sheet{position:fixed;inset:0;background:rgba(5,10,8,.75);
+  display:flex;align-items:flex-end;z-index:50}
+.sheetbody{background:var(--ground);border-top:1px solid var(--line);
+  border-radius:16px 16px 0 0;width:100%;max-height:88vh;overflow-y:auto;
+  padding:16px 14px 34px;max-width:520px;margin:0 auto}
+.sheettop{display:flex;justify-content:space-between;align-items:center}
+.sheettop strong{font-size:17px}
+.sheetq{font-size:17px;line-height:1.3;margin:5px 0 14px}
+.riskline{font-size:13px;color:var(--ink2);margin:12px 0 14px}
+.grp{font-size:11px;color:var(--ink3)}
+
+.tabs{display:flex;gap:6px;margin:12px 0}
+.tab{flex:1;padding:8px;border-radius:8px;border:1px solid var(--line);
+  background:transparent;color:var(--ink2);font-size:13px;cursor:pointer}
+.tab[data-on="1"]{background:var(--surface2);color:var(--ink);border-color:var(--ink3)}
+
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.gchip{flex:0 0 auto;padding:6px 11px;border-radius:999px;border:1px solid var(--line);
+  background:transparent;color:var(--ink2);font-size:12px;cursor:pointer;white-space:nowrap}
+.gchip[data-on="1"]{background:var(--surface2);color:var(--ink);border-color:var(--ink3)}
+
+.pick{display:block;width:100%;text-align:left;background:var(--surface);
+  border:1px solid var(--line);border-radius:9px;padding:10px;margin-bottom:7px;
+  color:var(--ink);font-size:14px;cursor:pointer}
+.pick .meta{font-size:11px;color:var(--ink3);margin-top:3px}
+
+button:focus-visible,input:focus-visible{outline:2px solid var(--a);outline-offset:2px}
