@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bet Room</title>
+
+<!-- ===================================================================== -->
+<!-- PASTE YOUR TWO SUPABASE VALUES HERE                                    -->
+<!-- ===================================================================== -->
+<script>
+  const SUPABASE_URL = "https://mzvjmeczhvujdyfmibpd.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_sNDSdxAP0E9MdmhOcnHIRw_bqr0IKsq";
+</script>
+<!-- ===================================================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --ground:#0E1A16; --surface:#16241F; --surface2:#1D2F28; --line:#2B4037;
+  --ink:#E9EFEA; --ink2:#8CA396; --ink3:#5E7469;
+  --a:#EBB04A; --b:#5AA9DE; --up:#6FD08C; --down:#E4796C; --edit:#C88BD8;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ground);color:var(--ink);min-height:100%}
+body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.cond{font-family:"Oswald","Arial Narrow",Impact,sans-serif;font-weight:500;letter-spacing:.02em}
+.num{font-variant-numeric:tabular-nums}
+.up{color:var(--up)}.down{color:var(--down)}.edited{color:var(--edit)}
+.hide{display:none!important}
+
+.wrap{max-width:520px;margin:0 auto;padding:0 14px 130px}
+.center{max-width:400px;margin:0 auto;padding:30px 20px;
+  min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+.center h1{font-size:34px;margin:0 0 6px;line-height:1}
+.center p{color:var(--ink2);font-size:14px;margin:0 0 20px;line-height:1.5}
+
+.head{display:flex;align-items:baseline;justify-content:space-between;padding:18px 0 10px}
+.head h1{margin:0;font-size:26px;line-height:1}
+.head .sub{font-size:12px;color:var(--ink3);margin-top:5px}
+.yournet{text-align:right}
+.yournet .v{font-size:26px;line-height:1}
+.yournet .k{font-size:11px;color:var(--ink3)}
+
+.sechead{display:flex;align-items:center;gap:9px;margin:22px 0 9px;color:var(--ink2);font-size:13px}
+.sechead .rule{flex:1;height:1px;background:var(--line)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:13px;margin-bottom:11px}
+.card .grp{font-size:11px;color:var(--ink3);margin-bottom:5px}
+.card .q{font-size:16px;line-height:1.3;margin-bottom:11px}
+.card .who{font-size:11px;color:var(--ink3);margin-top:6px;line-height:1.45}
+
+.sides{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.side{border:1px solid var(--line);background:var(--surface2);border-radius:10px;
+  padding:10px 9px;text-align:left;cursor:pointer;color:var(--ink);font:inherit}
+.side .nm{font-size:15px;font-weight:600;line-height:1.2}
+.side .rk{font-size:12px;color:var(--ink2);margin-top:4px}
+.side .py{font-size:11px;color:var(--ink3);margin-top:1px}
+.side[data-s="A"]{border-left:3px solid var(--a)}
+.side[data-s="B"]{border-left:3px solid var(--b)}
+.side[data-mine="1"][data-s="A"]{background:rgba(235,176,74,.15);border-color:var(--a)}
+.side[data-mine="1"][data-s="B"]{background:rgba(90,169,222,.15);border-color:var(--b)}
+.takers{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
+.chip{font-size:11px;padding:2px 7px;border-radius:999px;
+  background:rgba(255,255,255,.07);color:var(--ink2)}
+
+.potrow{display:flex;justify-content:space-between;align-items:center;gap:10px;
+  margin-top:11px;padding-top:10px;border-top:1px solid var(--line);
+  font-size:13px;color:var(--ink2)}
+.potrow b{color:var(--ink);font-weight:600}
+
+button{font:inherit}
+.btn{border:1px solid var(--line);background:var(--surface2);color:var(--ink);
+  border-radius:9px;padding:9px 13px;font-size:14px;cursor:pointer}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.primary{background:var(--ink);color:var(--ground);border-color:var(--ink);font-weight:600}
+.btn.wide{width:100%}
+.btn.sm{padding:6px 10px;font-size:13px}
+.linkish{background:none;border:none;color:var(--ink3);font-size:12px;
+  text-decoration:underline;cursor:pointer;padding:0}
+.rowbtns{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.grades{display:flex;gap:6px;margin-top:11px;flex-wrap:wrap}
+.gbtn{flex:1;min-width:64px;border:1px solid var(--line);background:transparent;
+  color:var(--ink2);border-radius:8px;padding:8px 4px;font-size:13px;cursor:pointer}
+.gbtn[data-k="A"]{border-color:rgba(235,176,74,.5);color:var(--a)}
+.gbtn[data-k="B"]{border-color:rgba(90,169,222,.5);color:var(--b)}
+
+.field{width:100%;background:var(--surface);border:1px solid var(--line);
+  border-radius:9px;padding:11px;color:var(--ink);font:inherit;font-size:16px;
+  margin-bottom:9px}
+.field:focus{outline:2px solid var(--ink3);outline-offset:1px}
+.flabel{font-size:12px;color:var(--ink2);margin-bottom:4px;display:block}
+.namegrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.namebtn{padding:16px;border-radius:10px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);font-size:16px;cursor:pointer}
+.err{color:var(--down);font-size:13px;margin-bottom:10px;line-height:1.45}
+.empty{color:var(--ink3);font-size:14px;padding:18px 0;line-height:1.55}
+
+.board{width:100%;border-collapse:collapse;font-size:13px}
+.board th{text-align:right;color:var(--ink3);font-weight:400;font-size:11px;
+  padding:5px 4px;border-bottom:1px solid var(--line)}
+.board th:first-child,.board td:first-child{text-align:left}
+.board td{text-align:right;padding:8px 4px;border-bottom:1px solid rgba(43,64,55,.5)}
+
+.banner{background:var(--a);color:#161006;border-radius:10px;padding:11px 13px;
+  font-size:14px;font-weight:600;margin-bottom:12px}
+.fab{position:fixed;left:0;right:0;bottom:0;
+  padding:12px 14px calc(12px + env(safe-area-inset-bottom));
+  background:linear-gradient(to top,var(--ground) 65%,rgba(14,26,22,0))}
+.fab .inner{max-width:520px;margin:0 auto}
+
+.sheet{position:fixed;inset:0;background:rgba(5,10,8,.75);
+  display:flex;align-items:flex-end;z-index:50}
+.sheetbody{background:var(--ground);border-top:1px solid var(--line);
+  border-radius:16px 16px 0 0;width:100%;max-height:88vh;overflow-y:auto;
+  padding:16px 14px 34px;max-width:520px;margin:0 auto}
+.tabs{display:flex;gap:6px;margin:12px 0}
+.tab{flex:1;padding:8px;border-radius:8px;border:1px solid var(--line);
+  background:transparent;color:var(--ink2);font-size:13px;cursor:pointer}
+.tab[data-on="1"]{background:var(--surface2);color:var(--ink);border-color:var(--ink3)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.gchip{flex:0 0 auto;padding:6px 11px;border-radius:999px;border:1px solid var(--line);
+  background:transparent;color:var(--ink2);font-size:12px;cursor:pointer;white-space:nowrap}
+.gchip[data-on="1"]{background:var(--surface2);color:var(--ink);border-color:var(--ink3)}
+.pick{display:block;width:100%;text-align:left;background:var(--surface);
+  border:1px solid var(--line);border-radius:9px;padding:10px;margin-bottom:7px;
+  color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.pick .meta{font-size:11px;color:var(--ink3);margin-top:3px}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:11px 12px;margin:12px 0}
+.toggle .s{font-size:11px;color:var(--ink3);margin-top:2px;line-height:1.4}
+.sw{flex:0 0 auto;width:48px;height:28px;border-radius:99px;border:1px solid var(--line);
+  background:var(--surface2);position:relative;cursor:pointer;padding:0}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;
+  border-radius:99px;background:var(--ink3)}
+.sw[data-on="1"]{background:rgba(235,176,74,.3);border-color:var(--a)}
+.sw[data-on="1"]::after{left:23px;background:var(--a)}
+input[type=range]{width:100%;accent-color:#EBB04A}
+
+.dot{position:fixed;top:calc(6px + env(safe-area-inset-top,0px));right:10px;
+  width:8px;height:8px;border-radius:99px;background:var(--ink3)}
+.dot[data-live="1"]{background:var(--up)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<div class="dot" id="dot" title="realtime"></div>
+<div id="app"></div>
+
+<script>
+/* =========================================================================
+   Bet Room — stage 2: the room only.
+   Join, claim a seat, propose, pick, lock, grade, scoreboard, realtime.
+   No pregame, admin screens, settle-up or stats yet.
+   ========================================================================= */
+
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const app = document.getElementById("app");
+const dot = document.getElementById("dot");
+
+const S = {
+  stage: "loading",   // loading | nokey | join | seat | room | nogame
+  game: null,
+  players: [],
+  bets: [],           // each carries .picks []
+  catalog: [],
+  me: null,           // player id
+  error: "",
+  banner: "",
+  sheet: false,
+};
+
+/* ---------- helpers ---------- */
+const money = n => (n < 0 ? "-$" : "$") + Math.abs(n).toFixed(2);
+const stake = () => Number(S.game?.base_stake ?? 1);
+const riskA = p => 2 * stake() * p;
+const riskB = p => 2 * stake() * (1 - p);
+const nameOf = id => S.players.find(p => p.id === id)?.name ?? "—";
+const esc = s => String(s ?? "").replace(/[&<>"']/g,
+  c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+function teams() {
+  const g = S.game;
+  if (!g) return { home:"Home", away:"Away" };
+  return { home: g.home_team, away: g.away_team };
+}
+function sub(str) {
+  const t = teams();
+  return String(str).replace(/\{home\}/g, t.home).replace(/\{away\}/g, t.away);
+}
+function matchup() {
+  const g = S.game;
+  return g ? `${g.away_team} at ${g.home_team}` : "";
+}
+function takers(bet, side) {
+  return bet.picks.filter(p => p.side === side).map(p => p.player_id);
+}
+function potOf(bet) {
+  return takers(bet,"A").length * riskA(bet.p) + takers(bet,"B").length * riskB(bet.p);
+}
+
+/* Silent on the last five bets in a row → dropped from other people's
+   screens. Only player-made picks count; an auto-out does not. */
+function dormant(playerId) {
+  const settled = S.bets
+    .filter(b => b.status !== "open")
+    .sort((x, y) => new Date(y.created_at) - new Date(x.created_at))
+    .slice(0, 5);
+  if (settled.length < 5) return false;
+  return settled.every(b =>
+    !b.picks.some(p => p.player_id === playerId && !p.auto));
+}
+const activePlayers = () => S.players.filter(p => !dormant(p.id));
+
+function flash(msg, ms = 4000) {
+  S.banner = msg;
+  render();
+  setTimeout(() => { if (S.banner === msg) { S.banner = ""; render(); } }, ms);
+}
+
+function beep() {
+  try {
+    const C = window.AudioContext || window.webkitAudioContext;
+    if (!C) return;
+    const ctx = new C(), o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(880, ctx.currentTime);
+    o.frequency.setValueAtTime(1320, ctx.currentTime + .09);
+    g.gain.setValueAtTime(.12, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .25);
+    o.connect(g).connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime + .26);
+  } catch (e) {}
+}
+
+/* ---------- data ---------- */
+async function loadGame() {
+  const { data, error } = await db.from("games").select("*")
+    .neq("phase", "closed").order("kickoff_date", { ascending:false }).limit(1);
+  if (error) throw error;
+  S.game = data?.[0] ?? null;
+}
+async function loadPlayers() {
+  const { data, error } = await db.from("players").select("*").order("created_at");
+  if (error) throw error;
+  S.players = data ?? [];
+}
+async function loadCatalog() {
+  const { data, error } = await db.from("bet_catalog").select("*")
+    .eq("retired", false).order("id");
+  if (error) throw error;
+  S.catalog = data ?? [];
+}
+async function loadBets() {
+  if (!S.game) { S.bets = []; return; }
+  const { data, error } = await db.from("bets")
+    .select("*, picks(player_id, side, auto)")
+    .eq("game_id", S.game.id)
+    .order("created_at", { ascending:false });
+  if (error) throw error;
+  S.bets = (data ?? []).map(b => ({ ...b, p: Number(b.p), picks: b.picks ?? [] }));
+}
+
+let refreshing = false;
+async function refresh(quiet) {
+  if (refreshing) return;
+  refreshing = true;
+  try {
+    const before = S.bets.filter(b => b.status === "open").length;
+    await Promise.all([loadGame(), loadPlayers()]);
+    await loadBets();
+    const after = S.bets.filter(b => b.status === "open").length;
+    if (quiet && after > before) beep();
+    render();
+  } catch (e) {
+    S.error = e.message || String(e);
+    render();
+  } finally {
+    refreshing = false;
+  }
+}
+
+/* One channel; any change to bets or picks just refetches. At six people
+   and ten bets that is far cheaper than reconciling state by hand. */
+function subscribe() {
+  db.channel("room")
+    .on("postgres_changes", { event:"*", schema:"public", table:"bets" },
+        () => refresh(true))
+    .on("postgres_changes", { event:"*", schema:"public", table:"picks" },
+        () => refresh(true))
+    .subscribe(status => {
+      dot.dataset.live = status === "SUBSCRIBED" ? "1" : "0";
+    });
+}
+
+/* ---------- actions ---------- */
+async function claimSeat(playerId) {
+  S.me = playerId;
+  localStorage.setItem("betroom.player", playerId);
+  let token = localStorage.getItem("betroom.device");
+  if (!token) {
+    token = crypto.randomUUID();
+    localStorage.setItem("betroom.device", token);
+  }
+  await db.from("devices").upsert({ token, player_id: playerId, last_seen: new Date().toISOString() });
+  if (S.game) {
+    await db.from("attendance").upsert(
+      { game_id: S.game.id, player_id: playerId },
+      { onConflict: "game_id,player_id", ignoreDuplicates: true });
+  }
+  S.stage = S.game ? "room" : "nogame";
+  render();
+}
+
+async function addPlayer(name) {
+  const { data, error } = await db.from("players")
+    .insert({ name: name.trim() }).select().single();
+  if (error) { S.error = error.message; render(); return; }
+  await loadPlayers();
+  claimSeat(data.id);
+}
+
+async function postBet(draft) {
+  const { error } = await db.from("bets").insert({
+    game_id: S.game.id,
+    category: draft.category,
+    body: draft.body,
+    side_a: draft.side_a,
+    side_b: draft.side_b,
+    p: draft.p,
+    odds_edited: draft.odds_edited,
+    even_money: draft.even_money,
+    proposer_id: S.me,
+    status: "open",
+  }).select().single().then(async r => {
+    if (r.error) return r;
+    return await db.from("picks").insert(
+      { bet_id: r.data.id, player_id: S.me, side: draft.mySide });
+  });
+  if (error) { S.error = error.message; render(); return; }
+  S.sheet = false;
+  await refresh();
+  flash("Bet posted — everyone picks a side");
+}
+
+async function setPick(betId, side) {
+  const bet = S.bets.find(b => b.id === betId);
+  if (!bet || bet.status !== "open") return;
+  const { error } = await db.from("picks").upsert(
+    { bet_id: betId, player_id: S.me, side, auto: false, updated_at: new Date().toISOString() },
+    { onConflict: "bet_id,player_id" });
+  if (error) { S.error = error.message; }
+  await refresh();
+}
+
+async function lockBet(betId) {
+  const bet = S.bets.find(b => b.id === betId);
+  if (!bet) return;
+  if (!takers(bet,"A").length || !takers(bet,"B").length) return;
+
+  // Auto-out: everyone still in the room who never answered. Flagged auto so
+  // it does not count as activity and revive a silent player.
+  const answered = new Set(bet.picks.map(p => p.player_id));
+  const missing = activePlayers().filter(p => !answered.has(p.id));
+  if (missing.length) {
+    await db.from("picks").insert(missing.map(p =>
+      ({ bet_id: betId, player_id: p.id, side: "OUT", auto: true })));
+  }
+  await db.from("bets").update({ status:"locked", locked_at: new Date().toISOString() })
+    .eq("id", betId);
+  await refresh();
+}
+
+async function gradeBet(betId, result) {
+  await db.from("bets").update(
+    { status:"graded", result, graded_at: new Date().toISOString() }).eq("id", betId);
+  await refresh();
+}
+async function ungrade(betId) {
+  await db.from("bets").update({ status:"locked", result:null, graded_at:null })
+    .eq("id", betId);
+  await refresh();
+}
+
+/* Proposer can pull only while nobody else has picked. */
+async function pullBet(betId) {
+  await db.from("bets").delete().eq("id", betId);
+  await refresh();
+}
+
+/* ---------- settlement (mirrors the SQL views) ---------- */
+function settle(bet) {
+  const out = {};
+  const A = takers(bet,"A"), B = takers(bet,"B");
+  if (bet.result === "PUSH" || bet.result === "VOID") {
+    [...A, ...B].forEach(id => out[id] = 0);
+    return out;
+  }
+  const rA = riskA(bet.p), rB = riskB(bet.p);
+  const pot = A.length * rA + B.length * rB;
+  const winners = bet.result === "A" ? A : B;
+  const share = winners.length ? pot / winners.length : 0;
+  A.forEach(id => out[id] = bet.result === "A" ? share - rA : -rA);
+  B.forEach(id => out[id] = bet.result === "B" ? share - rB : -rB);
+  return out;
+}
+function scoreboard() {
+  const n = {};
+  S.players.forEach(p => n[p.id] = { net:0, risked:0, w:0, l:0, push:0, in:0 });
+  S.bets.filter(b => b.status === "graded").forEach(b => {
+    const s = settle(b);
+    Object.entries(s).forEach(([id, v]) => {
+      const r = n[id]; if (!r) return;
+      const side = b.picks.find(p => p.player_id === id)?.side;
+      r.net += v; r.in++;
+      r.risked += side === "A" ? riskA(b.p) : riskB(b.p);
+      if (b.result === "PUSH" || b.result === "VOID") r.push++;
+      else if (b.result === side) r.w++; else r.l++;
+    });
+  });
+  return n;
+}
+
+/* ---------- render ---------- */
+function render() {
+  if (S.stage === "loading") { app.innerHTML = `<div class="center"><p>Connecting…</p></div>`; return; }
+  if (S.stage === "nokey")   return renderNoKey();
+  if (S.stage === "join")    return renderJoin();
+  if (S.stage === "seat")    return renderSeat();
+  if (S.stage === "nogame")  return renderNoGame();
+  return renderRoom();
+}
+
+function renderNoKey() {
+  app.innerHTML = `<div class="center">
+    <h1 class="cond">Almost there</h1>
+    <p>Open this file in a text editor and paste your Supabase publishable key
+       into the config block at the top, replacing PASTE_YOUR_PUBLISHABLE_KEY_HERE.</p>
+    ${S.error ? `<div class="err">${esc(S.error)}</div>` : ""}
+  </div>`;
+}
+
+function renderJoin() {
+  app.innerHTML = `<div class="center">
+    <h1 class="cond">Bet Room</h1>
+    <p>Enter the room password.</p>
+    ${S.error ? `<div class="err">${esc(S.error)}</div>` : ""}
+    <input class="field" id="pw" placeholder="Room password" autocomplete="off">
+    <button class="btn primary wide" id="go">Join</button>
+  </div>`;
+  const go = async () => {
+    const pw = document.getElementById("pw").value.trim();
+    const { data, error } = await db.rpc("check_room_password", { pw });
+    if (error)  { S.error = error.message; return render(); }
+    if (!data)  { S.error = "That password doesn't match."; return render(); }
+    localStorage.setItem("betroom.pw", "1");
+    S.error = ""; S.stage = "seat"; render();
+  };
+  document.getElementById("go").onclick = go;
+  document.getElementById("pw").onkeydown = e => { if (e.key === "Enter") go(); };
+}
+
+function renderSeat() {
+  app.innerHTML = `<div class="center">
+    <h1 class="cond">Who are you?</h1>
+    <p>Tap your name — same name every week, on any device. That's what keeps
+       your record in one piece.</p>
+    ${S.error ? `<div class="err">${esc(S.error)}</div>` : ""}
+    <div class="namegrid">
+      ${S.players.map(p =>
+        `<button class="namebtn" data-id="${p.id}">${esc(p.name)}</button>`).join("")}
+    </div>
+    <div style="margin-top:18px">
+      <label class="flabel">Not on the list?</label>
+      <input class="field" id="newname" placeholder="First name is plenty" autocomplete="off">
+      <div id="near" style="font-size:13px;color:var(--a);line-height:1.5;margin:-4px 0 10px"></div>
+      <button class="btn wide" id="add">Add and start</button>
+    </div>
+  </div>`;
+  app.querySelectorAll(".namebtn").forEach(b =>
+    b.onclick = () => claimSeat(b.dataset.id));
+  const input = document.getElementById("newname");
+  input.oninput = () => {
+    const v = input.value.trim().toLowerCase();
+    const hit = v && S.players.find(p => {
+      const n = p.name.toLowerCase();
+      return n === v || n.startsWith(v) || v.startsWith(n);
+    });
+    document.getElementById("near").textContent = hit
+      ? `${hit.name} is already on the list — tap it above if that's you.` : "";
+  };
+  document.getElementById("add").onclick = () => {
+    if (input.value.trim()) addPlayer(input.value);
+  };
+}
+
+function renderNoGame() {
+  app.innerHTML = `<div class="center">
+    <h1 class="cond">Nothing on today</h1>
+    <p>No game is set up. The admin screen comes in a later stage — for now a
+       game is created straight in the database.</p>
+  </div>`;
+}
+
+function renderRoom() {
+  const open   = S.bets.filter(b => b.status === "open");
+  const locked = S.bets.filter(b => b.status === "locked");
+  const graded = S.bets.filter(b => b.status === "graded");
+  const sb = scoreboard();
+  const mine = sb[S.me]?.net ?? 0;
+
+  app.innerHTML = `
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <h1 class="cond">${esc(matchup())}</h1>
+        <div class="sub">Base stake ${money(stake())} · you're ${esc(nameOf(S.me))}</div>
+      </div>
+      <div class="yournet">
+        <div class="v cond num ${mine > .001 ? "up" : mine < -.001 ? "down" : ""}">${money(mine)}</div>
+        <div class="k">your net</div>
+      </div>
+    </div>
+
+    ${S.banner ? `<div class="banner">${esc(S.banner)}</div>` : ""}
+    ${S.error ? `<div class="err">${esc(S.error)}</div>` : ""}
+
+    <div class="sechead"><span>Taking picks (${open.length})</span><span class="rule"></span></div>
+    ${open.length ? open.map(openCard).join("") : `<div class="empty">
+      Nothing on the table. Call one before the next snap.</div>`}
+
+    ${locked.length ? `<div class="sechead"><span>Locked, waiting on the result (${locked.length})</span><span class="rule"></span></div>
+      ${locked.map(lockedCard).join("")}` : ""}
+
+    ${graded.length ? `<div class="sechead"><span>Settled (${graded.length})</span><span class="rule"></span></div>
+      ${graded.map(gradedCard).join("")}` : ""}
+
+    <div class="sechead"><span>Scoreboard</span><span class="rule"></span></div>
+    <table class="board num">
+      <thead><tr><th>Player</th><th>In</th><th>W–L–P</th><th>Risked</th><th>Net</th></tr></thead>
+      <tbody>
+        ${S.players.map(p => {
+          const r = sb[p.id];
+          return `<tr>
+            <td style="color:${p.id === S.me ? "var(--ink)" : "var(--ink2)"}">${esc(p.name)}</td>
+            <td>${r.in}</td><td>${r.w}–${r.l}–${r.push}</td>
+            <td>${money(r.risked)}</td>
+            <td class="${r.net > .001 ? "up" : r.net < -.001 ? "down" : ""}">${money(r.net)}</td>
+          </tr>`;
+        }).join("")}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="fab"><div class="inner">
+    <button class="btn primary wide" id="callbet" ${open.length >= 10 ? "disabled" : ""}>
+      ${open.length >= 10 ? "Ten bets already open" : "Call a bet"}
+    </button>
+  </div></div>
+  ${S.sheet ? sheetHTML() : ""}`;
+
+  wireRoom();
+  if (S.sheet) wireSheet();
+}
+
+function openCard(b) {
+  const A = takers(b,"A"), B = takers(b,"B"), OUT = takers(b,"OUT");
+  const rA = riskA(b.p), rB = riskB(b.p), pot = potOf(b);
+  const mine = b.picks.find(p => p.player_id === S.me)?.side;
+  const canLock = A.length && B.length;
+  const missing = activePlayers().filter(p => !b.picks.some(x => x.player_id === p.id));
+  const myWin = mine === "A" && A.length ? pot / A.length - rA
+              : mine === "B" && B.length ? pot / B.length - rB : null;
+  const canPull = b.proposer_id === S.me && b.picks.length <= 1;
+
+  const sideBtn = (s) => {
+    const r = s === "A" ? rA : rB, other = s === "A" ? rB : rA;
+    const list = s === "A" ? A : B;
+    return `<button class="side" data-s="${s}" data-mine="${mine === s ? 1 : 0}"
+              data-pick="${b.id}" data-side="${s}">
+      <div class="nm">${esc(s === "A" ? b.side_a : b.side_b)}</div>
+      <div class="rk num">risk ${money(r)}</div>
+      <div class="py num">pays ${(other / r).toFixed(2)}×</div>
+      <div class="takers">${list.map(id => `<span class="chip">${esc(nameOf(id))}</span>`).join("")}</div>
+    </button>`;
+  };
+
+  return `<div class="card">
+    <div class="grp">${esc(b.category)}${
+      b.even_money ? ` <span class="edited">· even money</span>`
+      : b.odds_edited ? ` <span class="edited">· odds changed to ${Math.round(b.p*100)}%</span>` : ""}</div>
+    <div class="q">${esc(b.body)}</div>
+    <div class="sides">${sideBtn("A")}${sideBtn("B")}</div>
+    <div class="potrow">
+      <span>Pot <b class="num">${money(pot)}</b>${
+        myWin !== null ? ` · you'd win <b class="num">${money(myWin)}</b>` : ""}</span>
+      <button class="linkish" data-pick="${b.id}" data-side="OUT">${
+        mine === "OUT" ? "sitting out" : "sit this one out"}</button>
+    </div>
+    ${(OUT.length || missing.length) ? `<div class="who">
+      ${OUT.length ? `out: ${OUT.map(id => esc(nameOf(id))).join(", ")}. ` : ""}
+      ${missing.length ? `no answer yet: ${missing.map(p => esc(p.name)).join(", ")}` : ""}
+    </div>` : ""}
+    <div class="rowbtns">
+      <button class="btn wide" data-lock="${b.id}" ${canLock ? "" : "disabled"}>
+        ${canLock ? "Lock it — ball's about to be snapped"
+                  : `Needs someone on ${esc(!A.length ? b.side_a : b.side_b)}`}
+      </button>
+    </div>
+    <div class="who">${canLock
+      ? "Anyone who hasn't picked when this locks is marked out."
+      : "A bet with everyone on one side pays nobody, so it can't lock."}
+      ${canPull ? ` <button class="linkish" data-pull="${b.id}">pull this bet</button>` : ""}
+    </div>
+  </div>`;
+}
+
+function lockedCard(b) {
+  return `<div class="card">
+    <div class="grp">${esc(b.category)}</div>
+    <div class="q">${esc(b.body)}</div>
+    <div style="font-size:13px;color:var(--ink2);line-height:1.6">
+      <span style="color:var(--a)">${esc(b.side_a)}</span> — ${takers(b,"A").map(id=>esc(nameOf(id))).join(", ") || "—"}<br>
+      <span style="color:var(--b)">${esc(b.side_b)}</span> — ${takers(b,"B").map(id=>esc(nameOf(id))).join(", ") || "—"}
+    </div>
+    <div class="grades">
+      <button class="gbtn" data-k="A" data-grade="${b.id}" data-r="A">${esc(b.side_a)} hit</button>
+      <button class="gbtn" data-k="B" data-grade="${b.id}" data-r="B">${esc(b.side_b)} hit</button>
+      <button class="gbtn" data-grade="${b.id}" data-r="PUSH">Push</button>
+      <button class="gbtn" data-grade="${b.id}" data-r="VOID">Void</button>
+    </div>
+  </div>`;
+}
+
+function gradedCard(b) {
+  const s = settle(b);
+  const label = b.result === "A" ? b.side_a : b.result === "B" ? b.side_b
+              : b.result === "PUSH" ? "Push" : "Void";
+  return `<div class="card">
+    <div class="grp">${esc(b.category)}</div>
+    <div class="q" style="margin-bottom:6px">${esc(b.body)}</div>
+    <div style="font-size:13px;color:var(--ink2)">Result: <b style="color:var(--ink)">${esc(label)}</b></div>
+    <div style="margin-top:8px">
+      ${Object.entries(s).map(([id, v]) => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:var(--ink2)">
+        <span>${esc(nameOf(id))}</span>
+        <span class="num ${v > .001 ? "up" : v < -.001 ? "down" : ""}">${money(v)}</span></div>`).join("")}
+    </div>
+    <div class="rowbtns"><button class="btn sm" data-ungrade="${b.id}">Graded wrong — undo</button></div>
+  </div>`;
+}
+
+function wireRoom() {
+  app.querySelectorAll("[data-pick]").forEach(el =>
+    el.onclick = () => setPick(el.dataset.pick, el.dataset.side));
+  app.querySelectorAll("[data-lock]").forEach(el =>
+    el.onclick = () => lockBet(el.dataset.lock));
+  app.querySelectorAll("[data-grade]").forEach(el =>
+    el.onclick = () => gradeBet(el.dataset.grade, el.dataset.r));
+  app.querySelectorAll("[data-ungrade]").forEach(el =>
+    el.onclick = () => ungrade(el.dataset.ungrade));
+  app.querySelectorAll("[data-pull]").forEach(el =>
+    el.onclick = () => pullBet(el.dataset.pull));
+  const cb = document.getElementById("callbet");
+  if (cb) cb.onclick = () => { S.sheet = true; SHEET = freshSheet(); render(); };
+}
+
+/* ---------- propose sheet ---------- */
+let SHEET;
+const freshSheet = () => ({
+  tab: "list", group: null, q: "", chosen: null,
+  pct: 50, even: false,
+  custom: { body:"", a:"", b:"", pct:50, even:false },
+});
+
+function sheetHTML() {
+  const cats = [...new Set(S.catalog.map(c => c.category))];
+  if (!SHEET.group) SHEET.group = cats[0];
+  const t = SHEET.q.trim().toLowerCase();
+  const list = S.catalog.filter(c =>
+    t ? sub(c.body).toLowerCase().includes(t) : c.category === SHEET.group).slice(0, 40);
+
+  const c = SHEET.chosen;
+  const p = c ? (SHEET.even ? .5 : SHEET.pct / 100) : (SHEET.custom.even ? .5 : SHEET.custom.pct / 100);
+  const rA = riskA(p), rB = riskB(p);
+  const labelA = c ? sub(c.side_a) : (SHEET.custom.a || "A");
+  const labelB = c ? sub(c.side_b) : (SHEET.custom.b || "B");
+  const basePct = c ? Math.round(Number(c.p) * 100) : 50;
+  const changed = c && SHEET.pct !== basePct;
+
+  const toggle = (on, id) => `<div class="toggle">
+      <div><div>Even money</div>
+        <div class="s">Drop the odds — both sides risk ${money(stake())}.</div></div>
+      <button class="sw" data-on="${on ? 1 : 0}" id="${id}" role="switch" aria-checked="${!!on}"
+              aria-label="Even money"></button>
+    </div>`;
+
+  let inner;
+  if (c) {
+    inner = `
+      <div class="grp" style="font-size:11px;color:var(--ink3)">${esc(c.category)}</div>
+      <div style="font-size:17px;line-height:1.3;margin:5px 0 14px">${esc(sub(c.body))}</div>
+      ${toggle(SHEET.even, "evensw")}
+      ${SHEET.even ? "" : `
+        <label class="flabel">Chance ${esc(labelA)} happens:
+          <span class="${changed ? "edited" : ""}">${SHEET.pct}%</span>
+          ${changed ? `<span class="edited"> — changed from ${basePct}%</span>` : ""}</label>
+        <input type="range" min="1" max="99" value="${SHEET.pct}" id="pct"
+               style="accent-color:${changed ? "#C88BD8" : "#EBB04A"}">`}
+      <div class="num" style="font-size:13px;color:var(--ink2);margin:12px 0 14px">
+        Risk ${money(rA)} to take ${esc(labelA)} · ${money(rB)} to take ${esc(labelB)}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn primary" data-post="A">Post, I'm on ${esc(labelA)}</button>
+        <button class="btn primary" data-post="B">Post, I'm on ${esc(labelB)}</button>
+      </div>
+      <button class="linkish" id="back" style="margin-top:12px">back to the list</button>`;
+  } else if (SHEET.tab === "list") {
+    inner = `
+      <div class="tabs">
+        <button class="tab" data-on="1">From the list</button>
+        <button class="tab" data-on="0" id="totab">Write your own</button>
+      </div>
+      <input class="field" id="q" placeholder="Search ${S.catalog.length} bets" value="${esc(SHEET.q)}">
+      ${SHEET.q ? "" : `<div class="chips">${cats.map(g =>
+        `<button class="gchip" data-on="${g === SHEET.group ? 1 : 0}" data-cat="${esc(g)}">${esc(g)}</button>`).join("")}</div>`}
+      ${list.map(x => `<button class="pick" data-choose="${x.id}">${esc(sub(x.body))}
+        <div class="meta num">${esc(sub(x.side_a))} ${Math.round(Number(x.p)*100)}% ·
+          risk ${money(riskA(Number(x.p)))} / ${money(riskB(Number(x.p)))}</div></button>`).join("")
+        || `<div class="empty">Nothing matches that.</div>`}`;
+  } else {
+    inner = `
+      <div class="tabs">
+        <button class="tab" data-on="0" id="tolist">From the list</button>
+        <button class="tab" data-on="1">Write your own</button>
+      </div>
+      <label class="flabel">The bet</label>
+      <input class="field" id="cbody" value="${esc(SHEET.custom.body)}" placeholder="Does Thacker finish the wings before the punt">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+        <div><label class="flabel">Side A</label>
+          <input class="field" id="ca" value="${esc(SHEET.custom.a)}" placeholder="Yes"></div>
+        <div><label class="flabel">Side B</label>
+          <input class="field" id="cb" value="${esc(SHEET.custom.b)}" placeholder="No"></div>
+      </div>
+      ${toggle(SHEET.custom.even, "cevensw")}
+      ${SHEET.custom.even ? "" : `
+        <label class="flabel">Chance Side A happens: ${SHEET.custom.pct}%</label>
+        <input type="range" min="1" max="99" value="${SHEET.custom.pct}" id="cpct">`}
+      <div class="num" style="font-size:13px;color:var(--ink2);margin:10px 0 12px">
+        Risk ${money(rA)} to take ${esc(labelA)} · ${money(rB)} to take ${esc(labelB)}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="btn" data-cpost="A">Post, I'm on ${esc(labelA)}</button>
+        <button class="btn" data-cpost="B">Post, I'm on ${esc(labelB)}</button>
+      </div>`;
+  }
+
+  return `<div class="sheet" id="sheet"><div class="sheetbody" id="sheetbody">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <strong style="font-size:17px">Call a bet</strong>
+      <button class="btn sm" id="closesheet">Close</button>
+    </div>
+    ${inner}
+  </div></div>`;
+}
+
+function wireSheet() {
+  const $ = id => document.getElementById(id);
+  const redraw = () => render();
+
+  $("sheet").onclick = e => { if (e.target.id === "sheet") { S.sheet = false; render(); } };
+  $("closesheet").onclick = () => { S.sheet = false; render(); };
+
+  if ($("totab"))  $("totab").onclick  = () => { SHEET.tab = "custom"; redraw(); };
+  if ($("tolist")) $("tolist").onclick = () => { SHEET.tab = "list";   redraw(); };
+  if ($("back"))   $("back").onclick   = () => { SHEET.chosen = null;  redraw(); };
+
+  const q = $("q");
+  if (q) {
+    q.oninput = () => { SHEET.q = q.value; redraw(); $("q")?.focus(); };
+    if (SHEET.q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+  }
+  app.querySelectorAll("[data-cat]").forEach(el =>
+    el.onclick = () => { SHEET.group = el.dataset.cat; redraw(); });
+  app.querySelectorAll("[data-choose]").forEach(el =>
+    el.onclick = () => {
+      const c = S.catalog.find(x => String(x.id) === el.dataset.choose);
+      SHEET.chosen = c; SHEET.pct = Math.round(Number(c.p) * 100); SHEET.even = false;
+      redraw();
+    });
+
+  if ($("evensw"))  $("evensw").onclick  = () => { SHEET.even = !SHEET.even; redraw(); };
+  if ($("cevensw")) $("cevensw").onclick = () => { SHEET.custom.even = !SHEET.custom.even; redraw(); };
+  if ($("pct"))  $("pct").oninput  = e => { SHEET.pct = +e.target.value; redraw(); };
+  if ($("cpct")) $("cpct").oninput = e => { SHEET.custom.pct = +e.target.value; redraw(); };
+
+  ["cbody","ca","cb"].forEach(id => {
+    const el = $(id);
+    if (!el) return;
+    el.oninput = () => {
+      SHEET.custom[id === "cbody" ? "body" : id === "ca" ? "a" : "b"] = el.value;
+    };
+  });
+
+  app.querySelectorAll("[data-post]").forEach(el => el.onclick = () => {
+    const c = SHEET.chosen;
+    const p = SHEET.even ? .5 : SHEET.pct / 100;
+    postBet({
+      category: c.category, body: sub(c.body),
+      side_a: sub(c.side_a), side_b: sub(c.side_b),
+      p, odds_edited: SHEET.even || SHEET.pct !== Math.round(Number(c.p)*100),
+      even_money: SHEET.even, mySide: el.dataset.post,
+    });
+  });
+
+  app.querySelectorAll("[data-cpost]").forEach(el => el.onclick = () => {
+    const cu = SHEET.custom;
+    if (!cu.body.trim() || !cu.a.trim() || !cu.b.trim()) {
+      S.error = "A custom bet needs a question and two sides."; return render();
+    }
+    postBet({
+      category: "Custom", body: cu.body.trim(),
+      side_a: cu.a.trim(), side_b: cu.b.trim(),
+      p: cu.even ? .5 : cu.pct / 100,
+      odds_edited: false, even_money: cu.even, mySide: el.dataset.cpost,
+    });
+  });
+}
+
+/* ---------- boot ---------- */
+(async function boot() {
+  if (!SUPABASE_KEY || SUPABASE_KEY.startsWith("PASTE_")) {
+    S.stage = "nokey"; return render();
+  }
+  try {
+    await Promise.all([loadGame(), loadPlayers(), loadCatalog()]);
+    await loadBets();
+  } catch (e) {
+    S.stage = "nokey";
+    S.error = "Couldn't reach the database: " + (e.message || e);
+    return render();
+  }
+
+  const savedPlayer = localStorage.getItem("betroom.player");
+  const known = savedPlayer && S.players.some(p => p.id === savedPlayer);
+
+  if (known) {
+    S.me = savedPlayer;
+    S.stage = S.game ? "room" : "nogame";
+    if (S.game) {
+      db.from("attendance").upsert({ game_id: S.game.id, player_id: S.me },
+        { onConflict:"game_id,player_id", ignoreDuplicates:true });
+    }
+  } else if (localStorage.getItem("betroom.pw")) {
+    S.stage = "seat";
+  } else {
+    S.stage = "join";
+  }
+
+  render();
+  subscribe();
+  setInterval(() => refresh(true), 20000);  // belt and braces if a socket drops
+})();
+</script>
+</body>
+</html>
