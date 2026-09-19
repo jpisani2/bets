@@ -127,6 +127,54 @@ export async function deleteBet(betId) {
   if (error) throw error;
 }
 
+export async function verifyAdminPin(pin) {
+  const { data, error } = await client.rpc("check_admin_pin", { pin });
+  if (error) throw error;
+  return Boolean(data);
+}
+
+export async function createGame(fields) {
+  const { data, error } = await client.from("games").insert(fields).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function createBets(rows) {
+  if (!rows.length) return;
+  const { error } = await client.from("bets").insert(rows);
+  if (error) throw error;
+}
+
+export async function setGamePhase(gameId, phase, stamp) {
+  const patch = { phase };
+  if (stamp) patch[stamp] = new Date().toISOString();
+  const { error } = await client.from("games").update(patch).eq("id", gameId);
+  if (error) throw error;
+}
+
+/* Kickoff: everything with action on both sides locks, everything one-sided
+   voids. A bet nobody took the other side of never had a bet in it. */
+export async function lockBets(ids) {
+  if (!ids.length) return;
+  const { error } = await client.from("bets")
+    .update({ status: "locked", locked_at: new Date().toISOString() })
+    .in("id", ids);
+  if (error) throw error;
+}
+
+export async function voidBets(ids) {
+  if (!ids.length) return;
+  const { error } = await client.from("bets")
+    .update({ status: "graded", result: "VOID", graded_at: new Date().toISOString() })
+    .in("id", ids);
+  if (error) throw error;
+}
+
+export async function deleteGame(gameId) {
+  const { error } = await client.from("games").delete().eq("id", gameId);
+  if (error) throw error;
+}
+
 /* --- realtime ------------------------------------------------------------ */
 
 /* Any change to bets or picks just refetches. At six players and ten bets

@@ -1,7 +1,8 @@
 /* The live board: open bets, locked bets, settled bets, scoreboard. */
 
-import { state, stake, nameOf, betsBy, awaiting,
-         pick, lock, grade, ungrade, pull, openProposeSheet } from "../store.js";
+import { state, stake, nameOf, betsBy, awaiting, isPregame, isBlind,
+         pick, lock, grade, ungrade, pull, openProposeSheet,
+         kickOff, goto } from "../store.js";
 import { MAX_OPEN_BETS } from "../config.js";
 import { esc, money, matchup } from "../format.js";
 import { riskA, riskB, takers, pot, canLock, settle, ifThisHits, rollUp } from "../scoring.js";
@@ -18,7 +19,8 @@ export function view() {
     <header class="head">
       <div>
         <h1 class="cond">${esc(matchup(state.game))}</h1>
-        <div class="sub">Base stake ${money(stake())} · you're ${esc(nameOf(state.me))}</div>
+        <div class="sub">Base stake ${money(stake())} · you're ${esc(nameOf(state.me))}
+          · <button class="linkish" id="adminlink">admin</button></div>
       </div>
       <div class="yournet">
         <div class="v cond num ${tone(mine)}">${money(mine)}</div>
@@ -29,9 +31,11 @@ export function view() {
     ${state.notice ? `<div class="banner">${esc(state.notice)}</div>` : ""}
     ${state.error ? `<div class="err">${esc(state.error)}</div>` : ""}
 
-    ${section(`Taking picks (${open.length})`)}
+    ${section(isPregame() ? `Pregame board (${open.length})` : `Taking picks (${open.length})`)}
     ${open.length ? open.map(openCard).join("")
-      : `<div class="empty">Nothing on the table. Call one before the next snap.</div>`}
+      : `<div class="empty">${isPregame()
+          ? "The pregame board is empty."
+          : "Nothing on the table. Call one before the next snap."}</div>`}
 
     ${locked.length ? section(`Locked, waiting on the result (${locked.length})`)
       + locked.map(lockedCard).join("") : ""}
@@ -44,9 +48,12 @@ export function view() {
   </div>
 
   <div class="fab"><div class="inner">
-    <button class="btn primary wide" id="callbet" ${full ? "disabled" : ""}>
-      ${full ? "Ten bets already open" : "Call a bet"}
-    </button>
+    ${isPregame() ? `
+      <button class="btn primary wide" id="kickoff">Kick off — close the pregame board</button>
+      <div class="fabnote">Admin only. In-game betting opens once this is tapped.</div>`
+    : `<button class="btn primary wide" id="callbet" ${full ? "disabled" : ""}>
+        ${full ? "Ten bets already open" : "Call a bet"}
+      </button>`}
   </div></div>
 
   ${state.proposing ? propose.view() : ""}`;
@@ -68,10 +75,17 @@ export function wire(root) {
   root.querySelectorAll("[data-pull]").forEach(el => {
     el.onclick = () => pull(el.dataset.pull);
   });
-  root.querySelector("#callbet").onclick = () => {
+  const callbet = root.querySelector("#callbet");
+  if (callbet) callbet.onclick = () => {
     propose.reset();
     openProposeSheet(true);
   };
+
+  const kick = root.querySelector("#kickoff");
+  if (kick) kick.onclick = () => state.admin ? kickOff() : goto("setup");
+
+  const admin = root.querySelector("#adminlink");
+  if (admin) admin.onclick = () => goto("setup");
   if (state.proposing) propose.wire(root);
 }
 
@@ -80,7 +94,7 @@ export function wire(root) {
 const tone = n => n > 0.001 ? "up" : n < -0.001 ? "down" : "";
 const section = title => `<div class="sechead"><span>${esc(title)}</span><span class="rule"></span></div>`;
 
-function sideButton(bet, side) {
+function sideButton(bet, side, blind) {
   const s = stake();
   const risk = side === "A" ? riskA(bet.p, s) : riskB(bet.p, s);
   const other = side === "A" ? riskB(bet.p, s) : riskA(bet.p, s);
@@ -92,28 +106,33 @@ function sideButton(bet, side) {
     <div class="nm">${esc(label)}</div>
     <div class="rk num">risk ${money(risk)}</div>
     <div class="py num">pays ${(other / risk).toFixed(2)}×</div>
-    <div class="takers">${takers(bet, side)
-      .map(id => `<span class="chip">${esc(nameOf(id))}</span>`).join("")}</div>
+    ${blind ? "" : `<div class="takers">${takers(bet, side)
+      .map(id => `<span class="chip">${esc(nameOf(id))}</span>`).join("")}</div>`}
   </button>`;
 }
 
 function openCard(bet) {
   const s = stake();
+  const blind = isBlind(bet);
   const mine = bet.picks.find(p => p.player_id === state.me)?.side;
   const sittingOut = takers(bet, "OUT");
   const missing = awaiting(bet);
   const lockable = canLock(bet);
-  const myWin = mine === "A" || mine === "B" ? ifThisHits(bet, mine, s) : null;
-  const canPull = bet.proposer_id === state.me && bet.picks.length <= 1;
+  const myWin = !blind && (mine === "A" || mine === "B") ? ifThisHits(bet, mine, s) : null;
+  const canPull = !blind && bet.proposer_id === state.me && bet.picks.length <= 1;
+  const inCount = takers(bet, "A").length + takers(bet, "B").length;
 
   return `<article class="card">
     <div class="grp">${esc(bet.category)}${badge(bet)}</div>
     <div class="q">${esc(bet.body)}</div>
-    <div class="sides">${sideButton(bet, "A")}${sideButton(bet, "B")}</div>
+    <div class="sides">${sideButton(bet, "A", blind)}${sideButton(bet, "B", blind)}</div>
 
     <div class="potrow">
-      <span>Pot <b class="num">${money(pot(bet, s))}</b>${
-        myWin !== null ? ` · you'd win <b class="num">${money(myWin)}</b>` : ""}</span>
+      ${blind
+        ? `<span><b>${inCount}</b> in${mine && mine !== "OUT"
+            ? ` · you're on ${esc(mine === "A" ? bet.side_a : bet.side_b)}` : ""}</span>`
+        : `<span>Pot <b class="num">${money(pot(bet, s))}</b>${
+            myWin !== null ? ` · you'd win <b class="num">${money(myWin)}</b>` : ""}</span>`}
       <button class="linkish" data-pick="${bet.id}" data-side="OUT">${
         mine === "OUT" ? "sitting out" : "sit this one out"}</button>
     </div>
@@ -123,18 +142,20 @@ function openCard(bet) {
       ${missing.length ? `no answer yet: ${missing.map(p => esc(p.name)).join(", ")}` : ""}
     </div>` : ""}
 
-    <div class="rowbtns">
-      <button class="btn wide" data-lock="${bet.id}" ${lockable ? "" : "disabled"}>
-        ${lockable ? "Lock it — ball's about to be snapped"
-          : `Needs someone on ${esc(takers(bet, "A").length ? bet.side_b : bet.side_a)}`}
-      </button>
-    </div>
-
-    <div class="who">${lockable
-      ? "Anyone who hasn't picked when this locks is marked out."
-      : "A bet with everyone on one side pays nobody, so it can't lock."}${
-      canPull ? ` <button class="linkish" data-pull="${bet.id}">pull this bet</button>` : ""}
-    </div>
+    ${blind ? `<div class="who">
+      Sides stay hidden until kickoff. Change your mind as often as you like.
+    </div>` : `
+      <div class="rowbtns">
+        <button class="btn wide" data-lock="${bet.id}" ${lockable ? "" : "disabled"}>
+          ${lockable ? "Lock it — ball's about to be snapped"
+            : `Needs someone on ${esc(takers(bet, "A").length ? bet.side_b : bet.side_a)}`}
+        </button>
+      </div>
+      <div class="who">${lockable
+        ? "Anyone who hasn't picked when this locks is marked out."
+        : "A bet with everyone on one side pays nobody, so it can't lock."}${
+        canPull ? ` <button class="linkish" data-pull="${bet.id}">pull this bet</button>` : ""}
+      </div>`}
   </article>`;
 }
 

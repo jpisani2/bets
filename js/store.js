@@ -6,7 +6,7 @@
 
 import * as db from "./db.js";
 import { DORMANT_AFTER } from "./config.js";
-import { isDormant } from "./scoring.js";
+import { isDormant, canLock } from "./scoring.js";
 import { beep } from "./format.js";
 
 export const state = {
@@ -20,6 +20,7 @@ export const state = {
   error: "",
   notice: "",
   proposing: false,
+  admin: false,
 };
 
 let onRender = () => {};
@@ -43,7 +44,18 @@ export function notify(message, ms = 4000) {
 
 export const stake = () => Number(state.game?.base_stake ?? 1);
 export const nameOf = id => state.players.find(p => p.id === id)?.name ?? "—";
-export const betsBy = status => state.bets.filter(b => b.status === status);
+export const betsBy = status => visibleBets().filter(b => b.status === status);
+
+export const phase = () => state.game?.phase ?? "live";
+export const isPregame = () => phase() === "pregame";
+
+/* Before kickoff the room shows the pregame board and nothing else. */
+export function visibleBets() {
+  return isPregame() ? state.bets.filter(b => b.is_pregame) : state.bets;
+}
+
+/* Sides on a pregame bet stay hidden until kickoff. */
+export const isBlind = bet => isPregame() && bet.is_pregame;
 
 /* Players who still appear in other people's "waiting on" lines. */
 export const presentPlayers = () =>
@@ -90,6 +102,8 @@ export async function boot() {
     state.screen = "unconfigured";
     return setError("Couldn't reach the database: " + (e.message || e));
   }
+
+  state.admin = localStorage.getItem("betroom.admin") === "1";
 
   const saved = localStorage.getItem("betroom.player");
   const known = saved && state.players.some(p => p.id === saved);
@@ -189,6 +203,64 @@ export async function ungrade(betId) {
 export async function pull(betId) {
   try { await db.deleteBet(betId); await reload(); }
   catch (e) { setError(e.message || e); }
+}
+
+/* --- admin --------------------------------------------------------------- */
+
+export async function unlockAdmin(pin) {
+  try {
+    if (!await db.verifyAdminPin(pin)) return setError("That PIN doesn't match.");
+    state.admin = true;
+    state.error = "";
+    localStorage.setItem("betroom.admin", "1");
+    render();
+  } catch (e) { setError(e.message || e); }
+}
+
+export function goto(screen) {
+  state.screen = screen;
+  state.error = "";
+  render();
+}
+
+export async function createGameWithBoard(fields, betRows) {
+  try {
+    const game = await db.createGame({ ...fields, phase: "pregame" });
+    await db.createBets(betRows.map(r => ({ ...r, game_id: game.id,
+                                            proposer_id: state.me })));
+    await reload();
+    state.screen = "room";
+    render();
+    notify(`Pregame board is up — ${betRows.length} bets, pick before kickoff`);
+  } catch (e) { setError(e.message || e); }
+}
+
+/* Kickoff closes the pregame board: both-sided bets lock, one-sided ones
+   void, and in-game betting opens. */
+export async function kickOff() {
+  const open = state.bets.filter(b => b.is_pregame && b.status === "open");
+  const lockable = open.filter(canLock);
+  const dead = open.filter(b => !canLock(b));
+  try {
+    for (const bet of lockable) {
+      await db.autoOut(bet.id, awaiting(bet).map(p => p.id));
+    }
+    await db.lockBets(lockable.map(b => b.id));
+    await db.voidBets(dead.map(b => b.id));
+    await db.setGamePhase(state.game.id, "live", "kicked_off_at");
+    await reload();
+    notify(`Kickoff — ${lockable.length} pregame bets locked` +
+           (dead.length ? `, ${dead.length} voided with no action` : ""), 6000);
+  } catch (e) { setError(e.message || e); }
+}
+
+export async function scrapGame() {
+  try {
+    await db.deleteGame(state.game.id);
+    await reload();
+    state.screen = "nogame";
+    render();
+  } catch (e) { setError(e.message || e); }
 }
 
 export function openProposeSheet(open) {

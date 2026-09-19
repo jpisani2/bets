@@ -174,3 +174,35 @@ input[type=range]{width:100%;accent-color:#EBB04A}
 .pick .meta{font-size:11px;color:var(--ink3);margin-top:3px}
 
 button:focus-visible,input:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+
+/* --- admin setup --------------------------------------------------------- */
+.wide{max-width:960px;margin:0 auto;padding:0 18px 70px}
+.wide .head{align-items:flex-start;padding-top:24px}
+.wide .head h1{font-size:30px}
+.wide .head .sub{max-width:520px;line-height:1.5;font-size:13px}
+
+.setupgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(min-width:720px){.setupgrid{grid-template-columns:repeat(3,1fr)}}
+
+.favrow{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:6px 0 4px}
+.favrow .flabel{margin-bottom:0}
+.vbtn{padding:6px 12px;border-radius:8px;border:1px solid var(--line);
+  background:transparent;color:var(--ink2);font-size:13px;cursor:pointer}
+.vbtn[data-on="1"]{background:var(--surface2);color:var(--ink);border-color:var(--ink3)}
+.hint{font-size:12px;color:var(--ink3);line-height:1.5}
+
+.setrow{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;
+  border-bottom:1px solid rgba(43,64,55,.6);padding:13px 0}
+.setlabel{font-size:15px;line-height:1.3}
+.setnote{font-size:11px;color:var(--ink3);margin-top:3px}
+.setctl{display:flex;align-items:center;gap:10px}
+.setctl input[type=range]{width:120px}
+.setpct{font-size:17px;min-width:46px;text-align:right}
+.setrisk{font-size:12px;color:var(--ink3);min-width:92px;text-align:right}
+@media(max-width:560px){
+  .setrow{grid-template-columns:1fr}
+  .setctl{justify-content:space-between}
+  .setctl input[type=range]{flex:1}
+}
+
+.fabnote{font-size:12px;color:var(--ink3);text-align:center;margin-top:8px;line-height:1.4}

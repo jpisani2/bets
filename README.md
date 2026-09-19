@@ -39,6 +39,7 @@ js/
   config.js         The only file you edit to deploy: URL, key, two tunables.
   format.js         Display helpers. No state, no database, no DOM.
   scoring.js        Settlement math. Mirrors the SQL views.
+  pregame.js        The eleven pregame bets and how they derive from the line.
   db.js             Every Supabase call.
   store.js          State, derived values, actions, realtime wiring.
   app.js            Picks a screen, renders it, wires it. Nothing else.
@@ -47,6 +48,7 @@ js/
     seat.js         Claim a seat from the roster.
     room.js         The live board and scoreboard.
     propose.js      The call-a-bet sheet.
+    setup.js        Admin: create a game, tune the board, open it.
 ```
 
 ## Two things that look odd but aren't
