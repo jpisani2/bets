@@ -38,7 +38,7 @@ export function view() {
   const board = ready() ? buildBoard(form, form.overrides) : [];
   const favName = form.favorite === "home" ? form.home_team : form.away_team;
 
-  return `<div class="wide">
+  return `<div class="page">
     <header class="head">
       <div>
         <h1 class="cond">This week's game</h1>

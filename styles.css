@@ -176,10 +176,10 @@ input[type=range]{width:100%;accent-color:#EBB04A}
 button:focus-visible,input:focus-visible{outline:2px solid var(--a);outline-offset:2px}
 
 /* --- admin setup --------------------------------------------------------- */
-.wide{max-width:960px;margin:0 auto;padding:0 18px 70px}
-.wide .head{align-items:flex-start;padding-top:24px}
-.wide .head h1{font-size:30px}
-.wide .head .sub{max-width:520px;line-height:1.5;font-size:13px}
+.page{max-width:960px;margin:0 auto;padding:0 18px 70px}
+.page .head{align-items:flex-start;padding-top:24px}
+.page .head h1{font-size:30px}
+.page .head .sub{max-width:520px;line-height:1.5;font-size:13px}
 
 .setupgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(min-width:720px){.setupgrid{grid-template-columns:repeat(3,1fr)}}
