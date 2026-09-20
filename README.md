@@ -55,6 +55,7 @@ js/
     settle.js       Balances, suggested transfers, the payment log.
     stats.js        Range filters, streaks, categories, CSV export.
     idle.js         Midweek: what you owe, last game, season table.
+    roster.js       Admin: merge, rename, delete, move a stray pick.
 ```
 
 ## Two things that look odd but aren't

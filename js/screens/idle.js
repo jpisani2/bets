@@ -10,6 +10,7 @@ import { balances } from "../ledger.js";
 import * as setup from "./setup.js";
 import * as settle from "./settle.js";
 import * as stats from "./stats.js";
+import * as roster from "./roster.js";
 
 export function view() {
   if (!state.history.loaded) return `<div class="center"><p>Catching up…</p></div>`;
@@ -27,7 +28,10 @@ export function view() {
           ? `${games.length} game${games.length === 1 ? "" : "s"} played so far`
           : "No games played yet"}</div>
       </div>
-      <button class="btn sm" id="admin">Set up a game</button>
+      <div class="rangebar">
+        <button class="btn sm" id="toroster">Roster</button>
+        <button class="btn sm" id="admin">Set up a game</button>
+      </div>
     </header>
 
     ${state.error ? `<div class="err">${esc(state.error)}</div>` : ""}
@@ -151,4 +155,7 @@ export function wire(root) {
 
   const toStats = root.querySelector("#tostats");
   if (toStats) toStats.onclick = () => { stats.reset(); goto("stats"); };
+
+  const toRoster = root.querySelector("#toroster");
+  if (toRoster) toRoster.onclick = () => { roster.reset(); goto("roster"); };
 }

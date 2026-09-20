@@ -10,6 +10,7 @@ import * as propose from "./propose.js";
 import * as closeout from "./closeout.js";
 import * as settleScreen from "./settle.js";
 import * as statsScreen from "./stats.js";
+import * as rosterScreen from "./roster.js";
 
 export function view() {
   const open = betsBy("open"), locked = betsBy("locked"), graded = betsBy("graded");
@@ -25,7 +26,8 @@ export function view() {
         <div class="sub">Base stake ${money(stake())} · you're ${esc(nameOf(state.me))}
           · <button class="linkish" id="adminlink">admin</button>
           · <button class="linkish" id="settlelink">settle up</button>
-          · <button class="linkish" id="statslink">stats</button></div>
+          · <button class="linkish" id="statslink">stats</button>
+          · <button class="linkish" id="rosterlink">roster</button></div>
       </div>
       <div class="yournet">
         <div class="v cond num ${tone(mine)}">${money(mine)}</div>
@@ -97,6 +99,9 @@ export function wire(root) {
 
   const toStats = root.querySelector("#statslink");
   if (toStats) toStats.onclick = () => { statsScreen.reset(); goto("stats"); };
+
+  const toRoster = root.querySelector("#rosterlink");
+  if (toRoster) toRoster.onclick = () => { rosterScreen.reset(); goto("roster"); };
   if (state.proposing) propose.wire(root);
 }
 

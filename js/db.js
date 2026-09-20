@@ -214,6 +214,63 @@ export async function voidPayment(id, byPlayerId) {
   if (error) throw error;
 }
 
+/* --- roster -------------------------------------------------------------- */
+
+export async function fetchFlags() {
+  const { data, error } = await client.from("name_flags").select("*")
+    .is("resolved_at", null).order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function raiseFlag(playerId, similarTo, reason) {
+  const { error } = await client.from("name_flags")
+    .insert({ player_id: playerId, similar_to: similarTo, reason });
+  if (error) throw error;
+}
+
+export async function clearFlag(id) {
+  const { error } = await client.from("name_flags")
+    .update({ resolved_at: new Date().toISOString() }).eq("id", id);
+  if (error) throw error;
+}
+
+export async function renamePlayer(id, name) {
+  const { error } = await client.from("players").update({ name }).eq("id", id);
+  if (error) throw error;
+}
+
+/* Merges and deletes run as one transaction in the database — half a merge
+   would be worse than none. See stage4-roster.sql. */
+export async function mergePlayers(source, target) {
+  const { error } = await client.rpc("merge_players", { source, target });
+  if (error) throw error;
+}
+
+export async function removePlayer(victim) {
+  const { error } = await client.rpc("delete_player", { victim });
+  if (error) throw error;
+}
+
+export async function undoRosterChange(change) {
+  const { error } = await client.rpc("undo_roster_change", { change });
+  if (error) throw error;
+}
+
+export async function fetchRosterChanges() {
+  const { data, error } = await client.from("roster_changes").select("*")
+    .is("undone_at", null).order("created_at", { ascending: false }).limit(20);
+  if (error) throw error;
+  return data ?? [];
+}
+
+/* For when someone taps in on the wrong phone. */
+export async function reassignPick(betId, fromId, toId) {
+  const { error } = await client.from("picks")
+    .update({ player_id: toId }).eq("bet_id", betId).eq("player_id", fromId);
+  if (error) throw error;
+}
+
 /* --- realtime ------------------------------------------------------------ */
 
 /* Any change to bets or picks just refetches. At six players and ten bets

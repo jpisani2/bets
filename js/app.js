@@ -12,11 +12,12 @@ import * as closeout from "./screens/closeout.js";
 import * as settle from "./screens/settle.js";
 import * as stats from "./screens/stats.js";
 import * as idle from "./screens/idle.js";
+import * as roster from "./screens/roster.js";
 
 const root = document.getElementById("app");
 const dot = document.getElementById("live");
 
-const SCREENS = { join, seat, room, setup, closeout, settle, stats, idle };
+const SCREENS = { join, seat, room, setup, closeout, settle, stats, idle, roster };
 
 const STATIC = {
   loading: () => `<div class="center"><p>Connecting…</p></div>`,

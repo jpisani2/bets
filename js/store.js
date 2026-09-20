@@ -23,6 +23,7 @@ export const state = {
   proposing: false,
   admin: false,
   history: { games: [], bets: [], payments: [], loaded: false },
+  roster: { flags: [], changes: [], loaded: false },
 };
 
 let onRender = () => {};
@@ -158,6 +159,7 @@ export async function takeSeat(playerId) {
 export async function addPlayer(name) {
   try {
     const player = await db.createPlayer(name);
+    await flagIfSimilar(player.id, name);
     state.players = await db.fetchPlayers();
     await takeSeat(player.id);
   } catch (e) { setError(e.message || e); }
@@ -287,6 +289,100 @@ export async function undoPayment(id) {
     await db.voidPayment(id, state.me);
     await loadHistory();
   } catch (e) { setError(e.message || e); }
+}
+
+/* --- roster -------------------------------------------------------------- */
+
+export async function loadRoster() {
+  try {
+    const [flags, changes] = await Promise.all([db.fetchFlags(), db.fetchRosterChanges()]);
+    state.roster = { flags, changes, loaded: true };
+    render();
+  } catch (e) { setError(e.message || e); }
+}
+
+/* Deliberately trigger-happy: a false flag costs the admin one tap, a missed
+   one costs a split record nobody notices. */
+export function looksLike(a, b) {
+  const norm = s => s.toLowerCase().replace(/[^a-z]/g, "");
+  const x = norm(a), y = norm(b);
+  if (!x || !y) return null;
+  if (x === y) return "same name";
+  if (x.startsWith(y) || y.startsWith(x)) return "one name starts with the other";
+  if (editDistance(x, y) <= 2) return "nearly identical spelling";
+  const first = s => s.trim().split(/\s+/)[0].toLowerCase();
+  if (first(a) === first(b)) return "same first name";
+  return null;
+}
+
+function editDistance(a, b) {
+  const grid = Array.from({ length: a.length + 1 },
+    (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 0; j <= b.length; j++) grid[0][j] = j;
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++)
+      grid[i][j] = Math.min(grid[i - 1][j] + 1, grid[i][j - 1] + 1,
+                            grid[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return grid[a.length][b.length];
+}
+
+async function flagIfSimilar(playerId, name) {
+  const hit = state.players
+    .filter(p => p.id !== playerId)
+    .map(p => ({ p, why: looksLike(name, p.name) }))
+    .find(x => x.why);
+  if (hit) await db.raiseFlag(playerId, hit.p.id, hit.why);
+}
+
+export async function renamePlayer(id, name) {
+  const clean = String(name).trim();
+  if (!clean) return;
+  try {
+    await db.renamePlayer(id, clean);
+    state.players = await db.fetchPlayers();
+    await flagIfSimilar(id, clean);
+    await loadRoster();
+  } catch (e) { setError(e.message || e); }
+}
+
+export async function mergePlayers(source, target) {
+  try {
+    await db.mergePlayers(source, target);
+    if (state.me === source) {
+      state.me = target;
+      localStorage.setItem("betroom.player", target);
+    }
+    state.players = await db.fetchPlayers();
+    await Promise.all([reload(), loadHistory(), loadRoster()]);
+    notify("Merged — every stat recalculated");
+  } catch (e) { setError(e.message || e); }
+}
+
+export async function removePlayer(id) {
+  try {
+    await db.removePlayer(id);
+    state.players = await db.fetchPlayers();
+    await Promise.all([reload(), loadHistory(), loadRoster()]);
+  } catch (e) { setError(e.message || e); }
+}
+
+export async function undoRosterChange(id) {
+  try {
+    await db.undoRosterChange(id);
+    state.players = await db.fetchPlayers();
+    await Promise.all([reload(), loadHistory(), loadRoster()]);
+    notify("Put back");
+  } catch (e) { setError(e.message || e); }
+}
+
+export async function clearFlag(id) {
+  try { await db.clearFlag(id); await loadRoster(); }
+  catch (e) { setError(e.message || e); }
+}
+
+export async function reassignPick(betId, fromId, toId) {
+  try { await db.reassignPick(betId, fromId, toId); await reload(); }
+  catch (e) { setError(e.message || e); }
 }
 
 export async function closeOutNight() {

@@ -239,3 +239,20 @@ select.field{appearance:none;
   letter-spacing:.04em;font-variant-numeric:tabular-nums;line-height:1}
 .streak.sW{background:rgba(111,208,140,.22);color:#8FE3A8}
 .streak.sL{background:rgba(228,121,108,.22);color:#F09488}
+
+/* --- roster -------------------------------------------------------------- */
+.flagged{color:var(--a)}
+.board tr.picked td{background:rgba(235,176,74,.08)}
+.board td.nowrap{white-space:nowrap}
+.tick{width:20px;height:20px;border-radius:5px;border:1px solid var(--line);
+  background:var(--surface2);cursor:pointer;padding:0;position:relative}
+.tick[data-on="1"]{background:var(--a);border-color:var(--a)}
+.tick[data-on="1"]::after{content:"";position:absolute;left:6px;top:2px;width:5px;height:10px;
+  border:solid #161006;border-width:0 2px 2px 0;transform:rotate(42deg)}
+.field.inline{margin-bottom:0;padding:6px 9px;font-size:14px;max-width:160px}
+.mergebox{background:var(--surface);border:1px solid var(--a);border-radius:12px;
+  padding:16px;margin-top:18px}
+.mergetitle{font-size:15px;margin-bottom:10px}
+.btn.chosen{border-color:var(--a);background:rgba(235,176,74,.14)}
+.moverow{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.moverow .field{margin-bottom:0;max-width:260px}
