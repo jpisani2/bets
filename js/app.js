@@ -4,6 +4,7 @@
 
 import { state, onChange, boot } from "./store.js";
 import { esc } from "./format.js";
+import { restore } from "./theme.js";
 import * as join from "./screens/join.js";
 import * as seat from "./screens/seat.js";
 import * as room from "./screens/room.js";
@@ -44,5 +45,6 @@ function render() {
   }
 }
 
+restore();
 onChange(render);
 boot();

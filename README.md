@@ -42,6 +42,7 @@ js/
   scoring.js        Settlement math. Mirrors the SQL views.
   pregame.js        The eleven pregame bets and how they derive from the line.
   ledger.js         Balances, rounding, and who hands what to whom.
+  theme.js          The six themes and which one this device chose.
   db.js             Every Supabase call.
   store.js          State, derived values, actions, realtime wiring.
   app.js            Picks a screen, renders it, wires it. Nothing else.
@@ -56,6 +57,7 @@ js/
     stats.js        Range filters, streaks, categories, CSV export.
     idle.js         Midweek: what you owe, last game, season table.
     roster.js       Admin: merge, rename, delete, move a stray pick.
+    menu.js         Everything that isn't the board, plus the theme picker.
 ```
 
 ## Two things that look odd but aren't
@@ -79,6 +81,9 @@ Inputs are `font-size: 16px` because iOS zooms the page when a smaller input
 takes focus.
 
 The four semantic colors — `--a`, `--b`, `--up`, `--down` — carry meaning and
-must not be reused for decoration. Team themes will recolor everything around
-them and leave those four alone, or a green number stops telling you whether
-it means a side or a win.
+must not be reused for decoration. A theme recolors the environment through
+`--brand` and the greys, and leaves those four in their roles. Where a team
+color sits too close to one of them, the semantic color is nudged along its
+own hue rather than swapped: side B shifts toward teal under Lions, side A
+toward orange under Michigan, money green brightens under Michigan State.
+Amber is still amber everywhere.

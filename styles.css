@@ -6,13 +6,76 @@
    =========================================================================== */
 
 :root{
+  /* Dark is the default: most of the time this is a phone in a dim room. */
   --ground:#0E1A16; --surface:#16241F; --surface2:#1D2F28; --line:#2B4037;
   --ink:#E9EFEA; --ink2:#8CA396; --ink3:#5E7469;
   --a:#EBB04A; --b:#5AA9DE; --up:#6FD08C; --down:#E4796C; --edit:#C88BD8;
+  --accent-ink:#161006;
+  --brand:#E9EFEA; --brand-ink:#0E1A16;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
+
+/* ---------------------------------------------------------------------------
+   Themes.
+
+   The four semantic colors carry meaning: --a and --b identify the two sides
+   of a bet, --up and --down identify money won and lost. A theme recolors the
+   environment through --brand and the greys, and keeps those four in their
+   roles. Where a team color would sit too close to one of them, the semantic
+   color is nudged along its hue rather than swapped — amber is still amber.
+
+   Michigan and Michigan State get one polarity each. Maize on white is
+   unreadable, and that green works as text on white rather than a glow on
+   black. Lions blue is mid-range enough to work either way.
+   --------------------------------------------------------------------------- */
+
+[data-theme="light"]{
+  --ground:#F7F8F6; --surface:#FFFFFF; --surface2:#EFF2EE; --line:#D9DFD8;
+  --ink:#1A231E; --ink2:#5A675F; --ink3:#8A968E;
+  --a:#B67A05; --b:#1B6FA8; --up:#1D7F45; --down:#C03A2B; --edit:#8A4FA0;
+  --accent-ink:#FFFFFF;
+  --brand:#1A231E; --brand-ink:#F7F8F6;
+}
+
+/* Honolulu blue owns the chrome, so side B shifts toward teal to stay
+   distinguishable from it. */
+[data-theme="lions-dark"]{
+  --ground:#0A1119; --surface:#121D28; --surface2:#182634; --line:#28394A;
+  --ink:#E7ECF1; --ink2:#94A5B4; --ink3:#65798C;
+  --a:#EBB04A; --b:#4FC3D9; --up:#6FD08C; --down:#E4796C; --edit:#C88BD8;
+  --accent-ink:#161006;
+  --brand:#0076B6; --brand-ink:#FFFFFF;
+}
+
+[data-theme="lions-light"]{
+  --ground:#F6F8FA; --surface:#FFFFFF; --surface2:#EAEFF4; --line:#D2DBE3;
+  --ink:#101B24; --ink2:#51616E; --ink3:#83919C;
+  --a:#B67A05; --b:#0F7D8C; --up:#1D7F45; --down:#C03A2B; --edit:#8A4FA0;
+  --accent-ink:#FFFFFF;
+  --brand:#005E92; --brand-ink:#FFFFFF;
+}
+
+/* Maize is close enough to the side-A amber that side A shifts toward
+   orange here. */
+[data-theme="michigan"]{
+  --ground:#001B36; --surface:#00274C; --surface2:#0A3563; --line:#17497E;
+  --ink:#EAF0F7; --ink2:#9CB4CE; --ink3:#6B87A5;
+  --a:#F0862A; --b:#63B8EA; --up:#6FD08C; --down:#E4796C; --edit:#C79BE0;
+  --accent-ink:#1A0C00;
+  --brand:#FFCB05; --brand-ink:#00274C;
+}
+
+/* Spartan green is a deep forest; money green brightens to stay apart. */
+[data-theme="michigan-state"]{
+  --ground:#F6F8F6; --surface:#FFFFFF; --surface2:#E8EFEA; --line:#CBD9CF;
+  --ink:#10241E; --ink2:#4A5D53; --ink3:#7C8D83;
+  --a:#B67A05; --b:#1B6FA8; --up:#0B8A57; --down:#C03A2B; --edit:#8A4FA0;
+  --accent-ink:#FFFFFF;
+  --brand:#18453B; --brand-ink:#FFFFFF;
+}
+
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--ground);color:var(--ink);min-height:100%}
 body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -61,11 +124,11 @@ code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.9em
 .side .py{font-size:11px;color:var(--ink3);margin-top:1px}
 .side[data-s="A"]{border-left:3px solid var(--a)}
 .side[data-s="B"]{border-left:3px solid var(--b)}
-.side[data-mine="1"][data-s="A"]{background:rgba(235,176,74,.15);border-color:var(--a)}
-.side[data-mine="1"][data-s="B"]{background:rgba(90,169,222,.15);border-color:var(--b)}
+.side[data-mine="1"][data-s="A"]{background:color-mix(in srgb,var(--a) 15%,transparent);border-color:var(--a)}
+.side[data-mine="1"][data-s="B"]{background:color-mix(in srgb,var(--b) 15%,transparent);border-color:var(--b)}
 .takers{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
 .chip{font-size:11px;padding:2px 7px;border-radius:999px;
-  background:rgba(255,255,255,.07);color:var(--ink2)}
+  background:var(--surface2);color:var(--ink2)}
 
 .potrow{display:flex;justify-content:space-between;align-items:center;gap:10px;
   margin-top:11px;padding-top:10px;border-top:1px solid var(--line);
@@ -84,7 +147,7 @@ code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.9em
 .btn{border:1px solid var(--line);background:var(--surface2);color:var(--ink);
   border-radius:9px;padding:9px 13px;font-size:14px;cursor:pointer}
 .btn:disabled{opacity:.4;cursor:default}
-.btn.primary{background:var(--ink);color:var(--ground);border-color:var(--ink);font-weight:600}
+.btn.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand);font-weight:600}
 .btn.wide{width:100%}
 .btn.sm{padding:6px 10px;font-size:13px}
 .linkish{background:none;border:none;color:var(--ink3);font-size:12px;
@@ -96,8 +159,8 @@ code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.9em
 .grades{display:flex;gap:6px;margin-top:11px;flex-wrap:wrap}
 .gbtn{flex:1;min-width:64px;border:1px solid var(--line);background:transparent;
   color:var(--ink2);border-radius:8px;padding:8px 4px;font-size:13px;cursor:pointer}
-.gbtn[data-k="A"]{border-color:rgba(235,176,74,.5);color:var(--a)}
-.gbtn[data-k="B"]{border-color:rgba(90,169,222,.5);color:var(--b)}
+.gbtn[data-k="A"]{border-color:color-mix(in srgb,var(--a) 50%,transparent);color:var(--a)}
+.gbtn[data-k="B"]{border-color:color-mix(in srgb,var(--b) 50%,transparent);color:var(--b)}
 
 /* 16px on inputs, or iOS zooms the page when they focus. */
 .field{width:100%;background:var(--surface);border:1px solid var(--line);
@@ -105,7 +168,7 @@ code{background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.9em
   margin-bottom:9px}
 .field:focus{outline:2px solid var(--ink3);outline-offset:1px}
 .flabel{font-size:12px;color:var(--ink2);margin-bottom:4px;display:block}
-input[type=range]{width:100%;accent-color:#EBB04A}
+input[type=range]{width:100%;accent-color:var(--a)}
 
 .toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;
   background:var(--surface);border:1px solid var(--line);border-radius:10px;
@@ -116,7 +179,7 @@ input[type=range]{width:100%;accent-color:#EBB04A}
   cursor:pointer;padding:0}
 .sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;
   border-radius:99px;background:var(--ink3)}
-.sw[data-on="1"]{background:rgba(235,176,74,.3);border-color:var(--a)}
+.sw[data-on="1"]{background:color-mix(in srgb,var(--a) 30%,transparent);border-color:var(--a)}
 .sw[data-on="1"]::after{left:23px;background:var(--a)}
 
 .namegrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -127,7 +190,7 @@ input[type=range]{width:100%;accent-color:#EBB04A}
 .err{color:var(--down);font-size:13px;margin-bottom:10px;line-height:1.45}
 .warn{font-size:13px;color:var(--a);line-height:1.5;margin:-4px 0 10px}
 .empty{color:var(--ink3);font-size:14px;padding:18px 0;line-height:1.55}
-.banner{background:var(--a);color:#161006;border-radius:10px;padding:11px 13px;
+.banner{background:var(--brand);color:var(--brand-ink);border-radius:10px;padding:11px 13px;
   font-size:14px;font-weight:600;margin-bottom:12px}
 
 /* --- scoreboard ---------------------------------------------------------- */
@@ -142,11 +205,11 @@ input[type=range]{width:100%;accent-color:#EBB04A}
 /* --- sticky action ------------------------------------------------------- */
 .fab{position:fixed;left:0;right:0;bottom:0;
   padding:12px 14px calc(12px + env(safe-area-inset-bottom));
-  background:linear-gradient(to top,var(--ground) 65%,rgba(14,26,22,0));z-index:30}
+  background:linear-gradient(to top,var(--ground) 65%,transparent);z-index:30}
 .fab .inner{max-width:520px;margin:0 auto}
 
 /* --- propose sheet ------------------------------------------------------- */
-.sheet{position:fixed;inset:0;background:rgba(5,10,8,.75);
+.sheet{position:fixed;inset:0;background:color-mix(in srgb,var(--ground) 82%,transparent);
   display:flex;align-items:flex-end;z-index:50}
 .sheetbody{background:var(--ground);border-top:1px solid var(--line);
   border-radius:16px 16px 0 0;width:100%;max-height:88vh;overflow-y:auto;
@@ -237,22 +300,79 @@ select.field{appearance:none;
 .streak{font-size:11px;height:18px;min-width:30px;padding:0 6px;border-radius:999px;
   font-weight:600;display:inline-flex;align-items:center;justify-content:center;
   letter-spacing:.04em;font-variant-numeric:tabular-nums;line-height:1}
-.streak.sW{background:rgba(111,208,140,.22);color:#8FE3A8}
-.streak.sL{background:rgba(228,121,108,.22);color:#F09488}
+.streak.sW{background:color-mix(in srgb,var(--up) 22%,transparent);color:var(--up)}
+.streak.sL{background:color-mix(in srgb,var(--down) 22%,transparent);color:var(--down)}
 
 /* --- roster -------------------------------------------------------------- */
 .flagged{color:var(--a)}
-.board tr.picked td{background:rgba(235,176,74,.08)}
+.board tr.picked td{background:color-mix(in srgb,var(--a) 10%,transparent)}
 .board td.nowrap{white-space:nowrap}
 .tick{width:20px;height:20px;border-radius:5px;border:1px solid var(--line);
   background:var(--surface2);cursor:pointer;padding:0;position:relative}
 .tick[data-on="1"]{background:var(--a);border-color:var(--a)}
 .tick[data-on="1"]::after{content:"";position:absolute;left:6px;top:2px;width:5px;height:10px;
-  border:solid #161006;border-width:0 2px 2px 0;transform:rotate(42deg)}
+  border:solid var(--accent-ink);border-width:0 2px 2px 0;transform:rotate(42deg)}
 .field.inline{margin-bottom:0;padding:6px 9px;font-size:14px;max-width:160px}
 .mergebox{background:var(--surface);border:1px solid var(--a);border-radius:12px;
   padding:16px;margin-top:18px}
 .mergetitle{font-size:15px;margin-bottom:10px}
-.btn.chosen{border-color:var(--a);background:rgba(235,176,74,.14)}
+.btn.chosen{border-color:var(--a);background:color-mix(in srgb,var(--a) 14%,transparent)}
 .moverow{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
 .moverow .field{margin-bottom:0;max-width:260px}
+
+/* --- menu and themes ----------------------------------------------------- */
+.menulist{display:grid;gap:8px;margin:14px 0 4px}
+.menuitem{display:flex;flex-direction:column;align-items:flex-start;gap:3px;
+  background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:12px 13px;color:var(--ink);font-size:16px;cursor:pointer;text-align:left}
+.menuitem span{font-size:11px;color:var(--ink3)}
+
+.themegrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.themebtn{display:flex;flex-direction:column;align-items:flex-start;gap:4px;
+  background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:11px;color:var(--ink);cursor:pointer;text-align:left}
+.themebtn[data-on="1"]{border-color:var(--a);
+  background:color-mix(in srgb,var(--a) 10%,transparent)}
+.themename{font-size:14px}
+.themenote{font-size:11px;color:var(--ink3);line-height:1.35}
+
+.swatches{display:flex;gap:3px;margin-bottom:3px}
+.swatches i{width:14px;height:14px;border-radius:99px;border:1px solid rgba(128,128,128,.35)}
+.themerow{display:flex;gap:8px;justify-content:center;margin-top:22px}
+.dotbtn{width:20px;height:20px;border-radius:99px;cursor:pointer;padding:0;
+  border:1px solid rgba(128,128,128,.4)}
+.dotbtn[data-on="1"]{outline:2px solid var(--ink3);outline-offset:2px}
+
+/* Swatch colors are literal on purpose: they preview a theme from inside
+   another one, so they cannot use the live variables. */
+[data-swatch="dark"]           {background:#0E1A16}
+[data-swatch="light"]          {background:#F7F8F6}
+[data-swatch="lions-dark"]     {background:#0076B6}
+[data-swatch="lions-light"]    {background:#B0B7BC}
+[data-swatch="michigan"]       {background:#00274C}
+[data-swatch="michigan-state"] {background:#18453B}
+
+.swatches[data-swatch="dark"]{background:none}
+.swatches[data-swatch="dark"] i:nth-child(1){background:#0E1A16}
+.swatches[data-swatch="dark"] i:nth-child(2){background:#EBB04A}
+.swatches[data-swatch="dark"] i:nth-child(3){background:#5AA9DE}
+.swatches[data-swatch="light"]{background:none}
+.swatches[data-swatch="light"] i:nth-child(1){background:#F7F8F6}
+.swatches[data-swatch="light"] i:nth-child(2){background:#B67A05}
+.swatches[data-swatch="light"] i:nth-child(3){background:#1B6FA8}
+.swatches[data-swatch="lions-dark"]{background:none}
+.swatches[data-swatch="lions-dark"] i:nth-child(1){background:#0A1119}
+.swatches[data-swatch="lions-dark"] i:nth-child(2){background:#0076B6}
+.swatches[data-swatch="lions-dark"] i:nth-child(3){background:#B0B7BC}
+.swatches[data-swatch="lions-light"]{background:none}
+.swatches[data-swatch="lions-light"] i:nth-child(1){background:#FFFFFF}
+.swatches[data-swatch="lions-light"] i:nth-child(2){background:#005E92}
+.swatches[data-swatch="lions-light"] i:nth-child(3){background:#B0B7BC}
+.swatches[data-swatch="michigan"]{background:none}
+.swatches[data-swatch="michigan"] i:nth-child(1){background:#00274C}
+.swatches[data-swatch="michigan"] i:nth-child(2){background:#FFCB05}
+.swatches[data-swatch="michigan"] i:nth-child(3){background:#0A3563}
+.swatches[data-swatch="michigan-state"]{background:none}
+.swatches[data-swatch="michigan-state"] i:nth-child(1){background:#FFFFFF}
+.swatches[data-swatch="michigan-state"] i:nth-child(2){background:#18453B}
+.swatches[data-swatch="michigan-state"] i:nth-child(3){background:#0B8A57}

@@ -21,6 +21,7 @@ export const state = {
   error: "",
   notice: "",
   proposing: false,
+  menu: false,
   admin: false,
   history: { games: [], bets: [], payments: [], loaded: false },
   roster: { flags: [], changes: [], loaded: false },
@@ -407,5 +408,10 @@ export async function scrapGame() {
 
 export function openProposeSheet(open) {
   state.proposing = open;
+  render();
+}
+
+export function openMenu(open) {
+  state.menu = open;
   render();
 }

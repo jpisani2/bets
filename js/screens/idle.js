@@ -3,14 +3,14 @@
    Ordered so that whatever you can act on beats whatever is merely
    interesting. Owing someone six dollars sits above your win rate. */
 
-import { state, goto, loadHistory } from "../store.js";
+import { state, goto, loadHistory, openMenu } from "../store.js";
 import { esc, money, matchup } from "../format.js";
 import { rollUp } from "../scoring.js";
 import { balances } from "../ledger.js";
 import * as setup from "./setup.js";
 import * as settle from "./settle.js";
 import * as stats from "./stats.js";
-import * as roster from "./roster.js";
+import * as menu from "./menu.js";
 
 export function view() {
   if (!state.history.loaded) return `<div class="center"><p>Catching up…</p></div>`;
@@ -29,7 +29,7 @@ export function view() {
           : "No games played yet"}</div>
       </div>
       <div class="rangebar">
-        <button class="btn sm" id="toroster">Roster</button>
+        <button class="btn sm" id="menulink">Menu</button>
         <button class="btn sm" id="admin">Set up a game</button>
       </div>
     </header>
@@ -57,7 +57,8 @@ export function view() {
     <div class="sechead"><span>This season</span><span class="rule"></span></div>
     ${seasonTable(games, bets)}
     <div class="rowbtns"><button class="btn" id="tostats">Full stats</button></div>
-  </div>`;
+  </div>
+  ${state.menu ? menu.view() : ""}`;
 }
 
 function outstanding() {
@@ -156,6 +157,8 @@ export function wire(root) {
   const toStats = root.querySelector("#tostats");
   if (toStats) toStats.onclick = () => { stats.reset(); goto("stats"); };
 
-  const toRoster = root.querySelector("#toroster");
-  if (toRoster) toRoster.onclick = () => { roster.reset(); goto("roster"); };
+  const menuLink = root.querySelector("#menulink");
+  if (menuLink) menuLink.onclick = () => openMenu(true);
+
+  if (state.menu) menu.wire(root);
 }

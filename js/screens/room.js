@@ -2,15 +2,12 @@
 
 import { state, stake, nameOf, betsBy, awaiting, isPregame, isBlind,
          pick, lock, grade, ungrade, pull, openProposeSheet,
-         kickOff, goto } from "../store.js";
+         kickOff, goto, openMenu } from "../store.js";
 import { MAX_OPEN_BETS } from "../config.js";
 import { esc, money, matchup } from "../format.js";
 import { riskA, riskB, takers, pot, canLock, settle, ifThisHits, rollUp } from "../scoring.js";
 import * as propose from "./propose.js";
-import * as closeout from "./closeout.js";
-import * as settleScreen from "./settle.js";
-import * as statsScreen from "./stats.js";
-import * as rosterScreen from "./roster.js";
+import * as menu from "./menu.js";
 
 export function view() {
   const open = betsBy("open"), locked = betsBy("locked"), graded = betsBy("graded");
@@ -24,10 +21,7 @@ export function view() {
       <div>
         <h1 class="cond">${esc(matchup(state.game))}</h1>
         <div class="sub">Base stake ${money(stake())} · you're ${esc(nameOf(state.me))}
-          · <button class="linkish" id="adminlink">admin</button>
-          · <button class="linkish" id="settlelink">settle up</button>
-          · <button class="linkish" id="statslink">stats</button>
-          · <button class="linkish" id="rosterlink">roster</button></div>
+          · <button class="linkish" id="menulink">menu</button></div>
       </div>
       <div class="yournet">
         <div class="v cond num ${tone(mine)}">${money(mine)}</div>
@@ -63,7 +57,8 @@ export function view() {
       </button>`}
   </div></div>
 
-  ${state.proposing ? propose.view() : ""}`;
+  ${state.proposing ? propose.view() : ""}
+  ${state.menu ? menu.view() : ""}`;
 }
 
 export function wire(root) {
@@ -91,17 +86,10 @@ export function wire(root) {
   const kick = root.querySelector("#kickoff");
   if (kick) kick.onclick = () => state.admin ? kickOff() : goto("setup");
 
-  const admin = root.querySelector("#adminlink");
-  if (admin) admin.onclick = () => { closeout.reset(); goto("closeout"); };
+  const menuLink = root.querySelector("#menulink");
+  if (menuLink) menuLink.onclick = () => openMenu(true);
 
-  const toSettle = root.querySelector("#settlelink");
-  if (toSettle) toSettle.onclick = () => { settleScreen.reset(); goto("settle"); };
-
-  const toStats = root.querySelector("#statslink");
-  if (toStats) toStats.onclick = () => { statsScreen.reset(); goto("stats"); };
-
-  const toRoster = root.querySelector("#rosterlink");
-  if (toRoster) toRoster.onclick = () => { rosterScreen.reset(); goto("roster"); };
+  if (state.menu) menu.wire(root);
   if (state.proposing) propose.wire(root);
 }
 

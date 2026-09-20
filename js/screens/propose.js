@@ -83,7 +83,7 @@ function chosenView() {
         <span class="${changed ? "edited" : ""}">${draft.pct}%</span>
         ${changed ? `<span class="edited"> — changed from ${basePct}%</span>` : ""}</label>
       <input type="range" min="1" max="99" value="${draft.pct}" id="pct"
-             style="accent-color:${changed ? "#C88BD8" : "#EBB04A"}">`}
+             style="accent-color:${changed ? "var(--edit)" : "var(--a)"}">`}
     <div class="riskline num">Risk ${money(riskA(p, stake()))} to take ${esc(labelA)} ·
       ${money(riskB(p, stake()))} to take ${esc(labelB)}</div>
     <div class="twoup">

@@ -96,7 +96,7 @@ function boardView(board) {
       </div>
       <div class="setctl">
         <input type="range" min="3" max="97" value="${row.pct}" data-odds="${row.key}"
-               style="accent-color:${row.changed ? "#C88BD8" : "#EBB04A"}">
+               style="accent-color:${row.changed ? "var(--edit)" : "var(--a)"}">
         <span class="setpct cond num ${row.changed ? "edited" : ""}">${row.pct}%</span>
         <span class="setrisk num">${money(riskA(row.pct / 100, s))} /
           ${money(riskB(row.pct / 100, s))}</span>
