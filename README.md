@@ -15,10 +15,11 @@ database, it arrives through a named function in that file. This is why the
 whole app can be repointed at a different backend by editing one file, and why
 you never have to hunt for where a write happens.
 
-**2. Only `scoring.js` computes money.**
-The settlement math is written once and mirrors the SQL views in `schema.sql`
-exactly. When a number looks wrong there are exactly two places to check, and
-they must agree. No screen may work out a payout on its own.
+**2. Only `scoring.js` and `ledger.js` compute money.**
+`scoring.js` settles bets; `ledger.js` turns those settlements plus the
+payment log into balances and transfers. Both mirror views in `schema.sql`.
+When a number looks wrong there are a known few places to check, and they must
+agree with the database. No screen works out a payout on its own.
 
 **3. Only `store.js` changes state, and only it triggers a render.**
 Screens read from `state` and call actions. They never mutate it and never
@@ -40,6 +41,7 @@ js/
   format.js         Display helpers. No state, no database, no DOM.
   scoring.js        Settlement math. Mirrors the SQL views.
   pregame.js        The eleven pregame bets and how they derive from the line.
+  ledger.js         Balances, rounding, and who hands what to whom.
   db.js             Every Supabase call.
   store.js          State, derived values, actions, realtime wiring.
   app.js            Picks a screen, renders it, wires it. Nothing else.
@@ -50,6 +52,9 @@ js/
     propose.js      The call-a-bet sheet.
     setup.js        Admin: create a game, tune the board, open it.
     closeout.js     Admin: end the night, grade the stragglers, delete a game.
+    settle.js       Balances, suggested transfers, the payment log.
+    stats.js        Range filters, streaks, categories, CSV export.
+    idle.js         Midweek: what you owe, last game, season table.
 ```
 
 ## Two things that look odd but aren't

@@ -8,6 +8,8 @@ import { esc, money, matchup } from "../format.js";
 import { riskA, riskB, takers, pot, canLock, settle, ifThisHits, rollUp } from "../scoring.js";
 import * as propose from "./propose.js";
 import * as closeout from "./closeout.js";
+import * as settleScreen from "./settle.js";
+import * as statsScreen from "./stats.js";
 
 export function view() {
   const open = betsBy("open"), locked = betsBy("locked"), graded = betsBy("graded");
@@ -21,7 +23,9 @@ export function view() {
       <div>
         <h1 class="cond">${esc(matchup(state.game))}</h1>
         <div class="sub">Base stake ${money(stake())} · you're ${esc(nameOf(state.me))}
-          · <button class="linkish" id="adminlink">admin</button></div>
+          · <button class="linkish" id="adminlink">admin</button>
+          · <button class="linkish" id="settlelink">settle up</button>
+          · <button class="linkish" id="statslink">stats</button></div>
       </div>
       <div class="yournet">
         <div class="v cond num ${tone(mine)}">${money(mine)}</div>
@@ -87,6 +91,12 @@ export function wire(root) {
 
   const admin = root.querySelector("#adminlink");
   if (admin) admin.onclick = () => { closeout.reset(); goto("closeout"); };
+
+  const toSettle = root.querySelector("#settlelink");
+  if (toSettle) toSettle.onclick = () => { settleScreen.reset(); goto("settle"); };
+
+  const toStats = root.querySelector("#statslink");
+  if (toStats) toStats.onclick = () => { statsScreen.reset(); goto("stats"); };
   if (state.proposing) propose.wire(root);
 }
 

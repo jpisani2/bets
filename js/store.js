@@ -10,7 +10,8 @@ import { isDormant, canLock } from "./scoring.js";
 import { beep } from "./format.js";
 
 export const state = {
-  screen: "loading",   // loading | unconfigured | join | seat | nogame | room
+  screen: "loading",   // loading | unconfigured | join | seat | idle | room
+                       //          | setup | closeout | settle | stats
   game: null,
   players: [],
   bets: [],
@@ -21,6 +22,7 @@ export const state = {
   notice: "",
   proposing: false,
   admin: false,
+  history: { games: [], bets: [], payments: [], loaded: false },
 };
 
 let onRender = () => {};
@@ -110,7 +112,7 @@ export async function boot() {
 
   if (known) {
     state.me = saved;
-    state.screen = state.game ? "room" : "nogame";
+    state.screen = state.game ? "room" : "idle";
     db.markPresent(state.game?.id, saved);
   } else {
     state.screen = localStorage.getItem("betroom.pw") ? "seat" : "join";
@@ -148,7 +150,7 @@ export async function takeSeat(playerId) {
     await db.rememberDevice(token, playerId);
     await db.markPresent(state.game?.id, playerId);
 
-    state.screen = state.game ? "room" : "nogame";
+    state.screen = state.game ? "room" : "idle";
     render();
   } catch (e) { setError(e.message || e); }
 }
@@ -257,13 +259,43 @@ export async function kickOff() {
 /* Closing out the night. Bets still taking picks are voided without asking —
    nobody committed to them. Locked bets each need an answer first, which the
    close-out screen enforces before it calls this. */
+/* --- history, money, stats ----------------------------------------------- */
+
+export async function loadHistory() {
+  try {
+    const [games, bets, payments] = await Promise.all([
+      db.fetchGames(), db.fetchAllBets(), db.fetchPayments(),
+    ]);
+    state.history = { games, bets, payments, loaded: true };
+    render();
+  } catch (e) { setError(e.message || e); }
+}
+
+export async function logPayment(payerId, payeeId, amount, note) {
+  try {
+    await db.createPayment({
+      payer_id: payerId, payee_id: payeeId,
+      amount: Number(amount), recorded_by: state.me, note: note || null,
+    });
+    await loadHistory();
+    notify("Payment logged");
+  } catch (e) { setError(e.message || e); }
+}
+
+export async function undoPayment(id) {
+  try {
+    await db.voidPayment(id, state.me);
+    await loadHistory();
+  } catch (e) { setError(e.message || e); }
+}
+
 export async function closeOutNight() {
   const stillOpen = state.bets.filter(b => b.status === "open");
   try {
     await db.voidBets(stillOpen.map(b => b.id));
     await db.setGamePhase(state.game.id, "closed", "closed_at");
     await reload();
-    state.screen = "nogame";
+    state.screen = "idle";
     render();
   } catch (e) { setError(e.message || e); }
 }
@@ -272,7 +304,7 @@ export async function scrapGame() {
   try {
     await db.deleteGame(state.game.id);
     await reload();
-    state.screen = "nogame";
+    state.screen = "idle";
     render();
   } catch (e) { setError(e.message || e); }
 }

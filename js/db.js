@@ -175,6 +175,45 @@ export async function deleteGame(gameId) {
   if (error) throw error;
 }
 
+/* --- history and money --------------------------------------------------- */
+
+export async function fetchGames() {
+  const { data, error } = await client.from("games").select("*")
+    .order("kickoff_date", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+/* Every bet ever, for the stats and balance screens. A season is a few
+   hundred rows, so one fetch beats paging. */
+export async function fetchAllBets() {
+  const { data, error } = await client.from("bets")
+    .select("*, picks(player_id, side, auto)")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map(b => ({ ...b, p: Number(b.p), picks: b.picks ?? [] }));
+}
+
+export async function fetchPayments() {
+  const { data, error } = await client.from("payments").select("*")
+    .order("paid_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function createPayment(row) {
+  const { error } = await client.from("payments").insert(row);
+  if (error) throw error;
+}
+
+/* Voids stay visible in the log rather than disappearing. */
+export async function voidPayment(id, byPlayerId) {
+  const { error } = await client.from("payments")
+    .update({ voided_at: new Date().toISOString(), voided_by: byPlayerId })
+    .eq("id", id);
+  if (error) throw error;
+}
+
 /* --- realtime ------------------------------------------------------------ */
 
 /* Any change to bets or picks just refetches. At six players and ten bets

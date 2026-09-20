@@ -135,7 +135,7 @@ export function wire(root) {
   const $ = sel => root.querySelector(sel);
   const redraw = () => goto("closeout");
 
-  if ($("#back")) $("#back").onclick = () => goto(state.game ? "room" : "nogame");
+  if ($("#back")) $("#back").onclick = () => goto(state.game ? "room" : "idle");
 
   if (!state.admin) {
     const pin = $("#pin");
