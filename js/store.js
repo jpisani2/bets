@@ -254,6 +254,20 @@ export async function kickOff() {
   } catch (e) { setError(e.message || e); }
 }
 
+/* Closing out the night. Bets still taking picks are voided without asking —
+   nobody committed to them. Locked bets each need an answer first, which the
+   close-out screen enforces before it calls this. */
+export async function closeOutNight() {
+  const stillOpen = state.bets.filter(b => b.status === "open");
+  try {
+    await db.voidBets(stillOpen.map(b => b.id));
+    await db.setGamePhase(state.game.id, "closed", "closed_at");
+    await reload();
+    state.screen = "nogame";
+    render();
+  } catch (e) { setError(e.message || e); }
+}
+
 export async function scrapGame() {
   try {
     await db.deleteGame(state.game.id);

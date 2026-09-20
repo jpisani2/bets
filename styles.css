@@ -206,3 +206,4 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--a);outline-offs
 }
 
 .fabnote{font-size:12px;color:var(--ink3);text-align:center;margin-top:8px;line-height:1.4}
+.btn.danger{border-color:var(--down);color:var(--down)}

@@ -8,11 +8,12 @@ import * as join from "./screens/join.js";
 import * as seat from "./screens/seat.js";
 import * as room from "./screens/room.js";
 import * as setup from "./screens/setup.js";
+import * as closeout from "./screens/closeout.js";
 
 const root = document.getElementById("app");
 const dot = document.getElementById("live");
 
-const SCREENS = { join, seat, room, setup };
+const SCREENS = { join, seat, room, setup, closeout };
 
 const STATIC = {
   loading: () => `<div class="center"><p>Connecting…</p></div>`,

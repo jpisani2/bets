@@ -49,6 +49,7 @@ js/
     room.js         The live board and scoreboard.
     propose.js      The call-a-bet sheet.
     setup.js        Admin: create a game, tune the board, open it.
+    closeout.js     Admin: end the night, grade the stragglers, delete a game.
 ```
 
 ## Two things that look odd but aren't

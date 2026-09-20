@@ -7,6 +7,7 @@ import { MAX_OPEN_BETS } from "../config.js";
 import { esc, money, matchup } from "../format.js";
 import { riskA, riskB, takers, pot, canLock, settle, ifThisHits, rollUp } from "../scoring.js";
 import * as propose from "./propose.js";
+import * as closeout from "./closeout.js";
 
 export function view() {
   const open = betsBy("open"), locked = betsBy("locked"), graded = betsBy("graded");
@@ -85,7 +86,7 @@ export function wire(root) {
   if (kick) kick.onclick = () => state.admin ? kickOff() : goto("setup");
 
   const admin = root.querySelector("#adminlink");
-  if (admin) admin.onclick = () => goto("setup");
+  if (admin) admin.onclick = () => { closeout.reset(); goto("closeout"); };
   if (state.proposing) propose.wire(root);
 }
 
